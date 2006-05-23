@@ -257,9 +257,9 @@ char * iniparser_getstring(dictionary * d, char * key, char * def)
 {
     char * lc_key ;
     char * sval ;
-
+    
     if (d==NULL || key==NULL)
-        return def ;
+      return def ;
 
     lc_key = strdup(strlwc(key));
     sval = dictionary_get(d, lc_key, def);
@@ -271,8 +271,17 @@ char * iniparser_getstring(dictionary * d, char * key, char * def)
 char * iniparser_getsecstring(dictionary * d, char * sec, char * key, char * def)
 {
   char * ret = NULL; 
-  char * sec_key = (char*) malloc(sizeof(char)*(strlen(sec)+strlen(key)+2));
-  sprintf(sec_key, "%s:%s\0", sec, key);
+  char * sec_key = NULL;
+  if( sec != NULL )
+  {
+    sec_key = (char*) malloc(sizeof(char)*(strlen(sec)+strlen(key)+2));
+    sprintf(sec_key, "%s:%s\0", sec, key);
+  } else
+  {
+    sec_key = (char*) malloc(sizeof(char)*(strlen(key)+2));
+    sprintf(sec_key, ":%s\0", key);
+  }
+
   ret = iniparser_getstring(d, sec_key, def);
   free(sec_key);
   return ret;
