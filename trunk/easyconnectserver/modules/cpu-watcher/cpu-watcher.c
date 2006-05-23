@@ -83,8 +83,7 @@ char* GetCurrLoad( CpuWatcher* Self )
   fclose(fp);
 
   strncpy( Ret, FileString, 4 );
-  Ret[4] = '\n';
-  Ret[5] = '\0';
+  Ret[4] = '\0';
   free( FileString );
   return Ret;
 
@@ -111,8 +110,7 @@ char* GetAvgLoad( CpuWatcher* Self, int Interv )
     FileString += 5;
   
   strncpy( Ret, FileString, 4 );
-  Ret[4] = '\n';
-  Ret[5] = '\0';
+  Ret[4] = '\0';
   free( FileString );
   return Ret;
 

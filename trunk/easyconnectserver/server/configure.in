@@ -1,8 +1,8 @@
 AC_INIT(configure.in)
 AC_SEARCH_LIBS([ioperm], [ioperm])
 
-PACKAGE=scoped
-VERSION=0.1.0
+PACKAGE=easyconnect
+VERSION=0.1.5
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 
@@ -13,4 +13,4 @@ AC_LANG_C
 AC_PROG_CC
 AC_PROG_RANLIB
 
-AC_OUTPUT(Makefile src/Makefile  src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile)
+AC_OUTPUT(Makefile src/Makefile  src/iniparser/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile)

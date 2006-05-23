@@ -142,6 +142,7 @@ char * iniparser_getstr(dictionary * d, char * key);
  */
 /*--------------------------------------------------------------------------*/
 char * iniparser_getstring(dictionary * d, char * key, char * def);
+char * iniparser_getsecstring(dictionary * d, char * sec, char * key, char * def);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -157,6 +158,7 @@ char * iniparser_getstring(dictionary * d, char * key, char * def);
  */
 /*--------------------------------------------------------------------------*/
 int iniparser_getint(dictionary * d, char * key, int notfound);
+int iniparser_getsecint(dictionary * d, char * sec, char * key, int notfound);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -172,6 +174,7 @@ int iniparser_getint(dictionary * d, char * key, int notfound);
  */
 /*--------------------------------------------------------------------------*/
 double iniparser_getdouble(dictionary * d, char * key, double notfound);
+double iniparser_getsecdouble(dictionary * d, char * sec, char * key, double notfound);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -206,6 +209,7 @@ double iniparser_getdouble(dictionary * d, char * key, double notfound);
  */
 /*--------------------------------------------------------------------------*/
 int iniparser_getboolean(dictionary * d, char * key, int notfound);
+int iniparser_getsecboolean(dictionary * d, char * sec, char * key, int notfound);
 
 
 /*-------------------------------------------------------------------------*/

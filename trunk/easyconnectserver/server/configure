@@ -2303,8 +2303,8 @@ if test "$ac_cv_search_ioperm" != no; then
 fi
 
 
-PACKAGE=scoped
-VERSION=0.1.0
+PACKAGE=easyconnect
+VERSION=0.1.5
 
 am__api_version="1.9"
 ac_aux_dir=
@@ -3731,7 +3731,7 @@ else
 fi
 
 
-                                        ac_config_files="$ac_config_files Makefile src/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile"
+                                                  ac_config_files="$ac_config_files Makefile src/Makefile src/iniparser/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -4309,6 +4309,7 @@ do
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+  "src/iniparser/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/iniparser/Makefile" ;;
   "src/tcpcliserver/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tcpcliserver/Makefile" ;;
   "src/tcpcliserver/cl/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/tcpcliserver/cl/Makefile" ;;
   "depfiles" ) CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;

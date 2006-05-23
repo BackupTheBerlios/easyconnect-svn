@@ -1,24 +1,24 @@
 
-/*-------------------------------------------------------------------------*/
-/**
-   @file    iniparser.c
-   @author  N. Devillard
-   @date    Mar 2000
-   @version $Revision: 2.14 $
-   @brief   Parser for ini files.
-*/
-/*--------------------------------------------------------------------------*/
+	/*-------------------------------------------------------------------------*/
+	/**
+	   @file    iniparser.c
+	   @author  N. Devillard
+	   @date    Mar 2000
+	   @version $Revision: 2.14 $
+	   @brief   Parser for ini files.
+	*/
+	/*--------------------------------------------------------------------------*/
 
-/*
-    $Id: iniparser.c,v 2.14 2002/12/12 10:49:01 ndevilla Exp $
-    $Author: ndevilla $
-    $Date: 2002/12/12 10:49:01 $
-    $Revision: 2.14 $
-*/
+	/*
+	    $Id: iniparser.c,v 2.14 2002/12/12 10:49:01 ndevilla Exp $
+	    $Author: ndevilla $
+	    $Date: 2002/12/12 10:49:01 $
+	    $Revision: 2.14 $
+	*/
 
-/*---------------------------------------------------------------------------
-                                Includes
- ---------------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------------
+					Includes
+	 ---------------------------------------------------------------------------*/
 
 #include "iniparser.h"
 #include "strlib.h"
@@ -26,83 +26,85 @@
 #define ASCIILINESZ         1024
 #define INI_INVALID_KEY     ((char*)-1)
 
-/*---------------------------------------------------------------------------
-                        Private to this module
- ---------------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------------
+				Private to this module
+	 ---------------------------------------------------------------------------*/
 
-/* Private: add an entry to the dictionary */
-static void iniparser_add_entry(
-    dictionary * d,
-    char * sec,
-    char * key,
-    char * val)
-{
-    char longkey[2*ASCIILINESZ+1];
+	/* Private: add an entry to the dictionary */
+	static void iniparser_add_entry(
+	    dictionary * d,
+	    char * sec,
+	    char * key,
+	    char * val)
+	{
+	    // TODO: Better check on this again!
+	    // fixed length, i dunno
+	    char longkey[2*ASCIILINESZ+1];
 
-    /* Make a key as section:keyword */
-    if (key!=NULL) {
-        sprintf(longkey, "%s:%s", sec, key);
-    } else {
-        strcpy(longkey, sec);
-    }
+	    /* Make a key as section:keyword */
+	    if (key!=NULL) {
+		sprintf(longkey, "%s:%s", sec, key);
+	    } else {
+		strcpy(longkey, sec);
+	    }
 
-    /* Add (key,val) to dictionary */
-    dictionary_set(d, longkey, val);
-    return ;
-}
-
-
-/*-------------------------------------------------------------------------*/
-/**
-  @brief    Get number of sections in a dictionary
-  @param    d   Dictionary to examine
-  @return   int Number of sections found in dictionary
-
-  This function returns the number of sections found in a dictionary.
-  The test to recognize sections is done on the string stored in the
-  dictionary: a section name is given as "section" whereas a key is
-  stored as "section:key", thus the test looks for entries that do not
-  contain a colon.
-
-  This clearly fails in the case a section name contains a colon, but
-  this should simply be avoided.
-
-  This function returns -1 in case of error.
- */
-/*--------------------------------------------------------------------------*/
-
-int iniparser_getnsec(dictionary * d)
-{
-    int i ;
-    int nsec ;
-
-    if (d==NULL) return -1 ;
-    nsec=0 ;
-    for (i=0 ; i<d->size ; i++) {
-        if (d->key[i]==NULL)
-            continue ;
-        if (strchr(d->key[i], ':')==NULL) {
-            nsec ++ ;
-        }
-    }
-    return nsec ;
-}
+	    /* Add (key,val) to dictionary */
+	    dictionary_set(d, longkey, val);
+	    return ;
+	}
 
 
-/*-------------------------------------------------------------------------*/
-/**
-  @brief    Get name for section n in a dictionary.
-  @param    d   Dictionary to examine
-  @param    n   Section number (from 0 to nsec-1).
-  @return   Pointer to char string
+	/*-------------------------------------------------------------------------*/
+	/**
+	  @brief    Get number of sections in a dictionary
+	  @param    d   Dictionary to examine
+	  @return   int Number of sections found in dictionary
 
-  This function locates the n-th section in a dictionary and returns
-  its name as a pointer to a string statically allocated inside the
-  dictionary. Do not free or modify the returned string!
+	  This function returns the number of sections found in a dictionary.
+	  The test to recognize sections is done on the string stored in the
+	  dictionary: a section name is given as "section" whereas a key is
+	  stored as "section:key", thus the test looks for entries that do not
+	  contain a colon.
 
-  This function returns NULL in case of error.
- */
-/*--------------------------------------------------------------------------*/
+	  This clearly fails in the case a section name contains a colon, but
+	  this should simply be avoided.
+
+	  This function returns -1 in case of error.
+	 */
+	/*--------------------------------------------------------------------------*/
+
+	int iniparser_getnsec(dictionary * d)
+	{
+	    int i ;
+	    int nsec ;
+
+	    if (d==NULL) return -1 ;
+	    nsec=0 ;
+	    for (i=0 ; i<d->size ; i++) {
+		if (d->key[i]==NULL)
+		    continue ;
+		if (strchr(d->key[i], ':')==NULL) {
+		    nsec ++ ;
+		}
+	    }
+	    return nsec ;
+	}
+
+
+	/*-------------------------------------------------------------------------*/
+	/**
+	  @brief    Get name for section n in a dictionary.
+	  @param    d   Dictionary to examine
+	  @param    n   Section number (from 0 to nsec-1).
+	  @return   Pointer to char string
+
+	  This function locates the n-th section in a dictionary and returns
+	  its name as a pointer to a string statically allocated inside the
+	  dictionary. Do not free or modify the returned string!
+
+	  This function returns NULL in case of error.
+	 */
+	/*--------------------------------------------------------------------------*/
 
 char * iniparser_getsecname(dictionary * d, int n)
 {
@@ -266,6 +268,15 @@ char * iniparser_getstring(dictionary * d, char * key, char * def)
 }
 
 
+char * iniparser_getsecstring(dictionary * d, char * sec, char * key, char * def)
+{
+  char * ret = NULL; 
+  char * sec_key = (char*) malloc(sizeof(char)*(strlen(sec)+strlen(key)+2));
+  sprintf(sec_key, "%s:%s\0", sec, key);
+  ret = iniparser_getstring(d, sec_key, def);
+  free(sec_key);
+  return ret;
+}
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -289,6 +300,7 @@ int iniparser_getint(dictionary * d, char * key, int notfound)
     return atoi(str);
 }
 
+int iniparser_getsecint(dictionary * d, char * sec, char * key, int notfound);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -313,6 +325,7 @@ double iniparser_getdouble(dictionary * d, char * key, double notfound)
 }
 
 
+double iniparser_getsecdouble(dictionary * d, char * sec, char * key, double notfound);
 
 /*-------------------------------------------------------------------------*/
 /**
@@ -363,6 +376,7 @@ int iniparser_getboolean(dictionary * d, char * key, int notfound)
     return ret;
 }
 
+int iniparser_getsecboolean(dictionary * d, char * sec, char * key, int notfound);
 
 /*-------------------------------------------------------------------------*/
 /**
