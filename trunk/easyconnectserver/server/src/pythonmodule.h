@@ -20,26 +20,49 @@
  *  Moritz Eberl <meberl@vscope.de>
  */
 
-#include <Python.h>
+#include <python2.4/Python.h>
 #include <stdlib.h>
+
+/*
+typedef struct pythonfunction PythonFunction;
+struct pythonfunction
+{
+  char* FunctionName;
+  PyObject* Func; 
+};
+
+PythonFunction* PythonFunction_Init( char* FunctionName, PyObject* Func );
+char* PythonFunction_Execute( PythonFunction* Self, int argc, char** argv );
+int PythonFunction_Destroy( PythonFunction* Self );
+*/
+
+typedef struct pythonmodule PythonModule;
+struct pythonmodule
+{
+  PyThreadState* MainThreadState;
+};
+
+PythonModule* PythonModule_Init();
+int PythonModule_AddPath( PythonModule* Self, char* Path );
+int PythonModule_Destroy( PythonModule* Self );
 
 typedef struct pythonenv PythonEnv;
 struct pythonenv
 {
-  PyObject* MainModule;
-  PyObject* MainDict;
-  PyObject** Functions;  
+  char* ModuleName;
+  PythonModule* Master;
+  PyThreadState* CurrentThreadState;
+  PyObject* Module;
+  
+  PyObject* Instance;
+  
+  //PythonFunction* List;
 };
 
 
-int PythonModule_Init();
-int PythonModule_Destroy();
-
-
-PythonEnv* PythonEnv_Init();
-int PythonEnv_LoadFromFile( PythonEnv* Self, char* Path );
-int PythonEnv_ExecuteFunction( PythonEnv* Self, int FnNumber );
+PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName );
+int PythonEnv_ImportFunctions( PythonEnv* Self );
+char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function );
 int PythonEnv_Destroy( PythonEnv* Self );
-
 
 

@@ -22,47 +22,149 @@
 
 #include "pythonmodule.h"
 
-int PythonModule_Init()
+PythonModule* PythonModule_Init()
 {
-  Py_Initialize();
-  return 0;
-}
-
-int PythonModule_Destroy()
-{
-  Py_Finalize();
-  return 0;
-}
-
-PythonEnv* PythonEnv_Init()
-{
-  PythonEnv* Self = (PythonEnv*) malloc( sizeof(PythonEnv) );
-
-  Self->MainModule = PyImport_AddModule("__main__");
-  Py_INCREF( Self->MainModule );
+  PythonModule* Self = (PythonModule*) malloc( sizeof( PythonModule ) );
   
-  PyObject* main_dict = PyModule_GetDict(main_module);
-  Self->MainDict = PyDict_Copy(main_dict);
-  Py_INCREF( Self->MainDict );
+  Py_Initialize();
+  PyEval_InitThreads();
+  Self->MainThreadState = PyThreadState_Get();
 
-  Self->Functions = NULL;
+  PyEval_ReleaseLock();
   return Self;
 }
 
-int PythonEnv_LoadFromFile( PythonEnv* Self, char* Path )
+int PythonModule_AddPath( PythonModule* Self, char* Path )
 {
-
+  char* Command = (char*) malloc( sizeof( char ) * 
+				    ( strlen( Path ) +
+				    26 ));
+  sprintf( Command, "import sys\nsys.path += '%s'", Path );
+  PyRun_SimpleString( Command );
+  return 0;
+	
 }
 
-int PythonEnv_ExecuteFunction( PythonEnv* Self, int FnNumber )
+
+int PythonModule_Destroy( PythonModule* Self )
 {
+  PyEval_AcquireLock();
+  PyThreadState_Swap(Self->MainThreadState); 
+  Py_Finalize();
+  free( Self );
+  return 0;
+}
+
+
+
+PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName )
+{
+  PyObject* pName;
+  
+  PythonEnv* Self = (PythonEnv*) malloc( sizeof(PythonEnv) );
+  Self->Module=NULL;
+  Self->ModuleName = (char*) malloc( sizeof(char) * strlen(ModuleName)+1 );
+  strcpy( Self->ModuleName, ModuleName );
+
+  Self->Master = Master;
+  
+  PyEval_AcquireLock(); 
+  Self->CurrentThreadState = PyThreadState_New( Self->Master->MainThreadState->interp );
+  PyThreadState_Swap( Self->CurrentThreadState );
+
+  pName = PyString_FromString(Self->ModuleName);
+
+  Self->Module = PyImport_Import(pName);
+  
+  if( Self->Module == NULL )
+  {
+    PyErr_Print();
+    PyThreadState_Swap(NULL); 
+    PyEval_ReleaseLock();
+    PythonEnv_Destroy( Self );
+    return NULL;
+  }
+
+  Py_INCREF(Self->Module);
+  Py_DECREF(pName);
+ 
+  PyThreadState_Swap(NULL); 
+  PyEval_ReleaseLock();
+  return Self;
+}
+
+
+int PythonEnv_ImportFunctions( PythonEnv* Self )
+{
+  char* FuncName;
+  PyObject* pFunc;
+  PyObject* Ret;
+  PyObject* pClass;
+  FuncName = (char*) malloc( sizeof(char) * ( strlen( Self->ModuleName ) +
+						    strlen( ".__introspection__" ) +
+						    1
+						   ));
+  sprintf( FuncName, "%s%s\0", Self->ModuleName, ".__introspection__");
+  printf("%s\n", FuncName );
+  pFunc = PyObject_GetAttrString( Self->Module, FuncName ); 
+  free( FuncName );
+
+  if( pFunc && PyCallable_Check( pFunc ) )
+  {
+
+    Py_DECREF(pFunc);
+    Ret = PyObject_CallObject(pFunc, NULL);
+    if( PyString_Check( Ret ) )
+    {
+      pClass = PyObject_GetAttr( Self->Module, Ret );  
+    }
+
+  }
+  return -1;
+}
+
+
+
+char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function )
+{
+  PyObject* pFunc;
+  PyObject* Module = Self->Module;
+  Py_INCREF( Module );
+  PyEval_AcquireLock(); 
+  PyThreadState_Swap( Self->CurrentThreadState );
+
+  pFunc = PyObject_GetAttrString( Module, Function ); 
+  Py_DECREF( Module );
+
+  if( pFunc && PyCallable_Check( pFunc ) )
+  {
+    Py_DECREF(pFunc);
+    PyObject_CallObject(pFunc, NULL);
+  }
+  else
+  {
+    PyErr_Print();
+  }
+  PyObject_Print( Self->Module, stderr, 0 );
+  PyThreadState_Swap(NULL); 
+  PyEval_ReleaseLock();
+
+  return NULL;
 }
 
 int PythonEnv_Destroy( PythonEnv* Self )
 {
-  // TODO: Decref for functions
-  Py_DECREF( Self->MainModule );
-  Py_DECREF( Self->MainDict );
+  if( Self != NULL )  
+  {
+    PyEval_AcquireLock();
+  
+    PyThreadState_Swap(NULL);
+    PyThreadState_Clear(Self->CurrentThreadState);
+    PyThreadState_Delete(Self->CurrentThreadState);
+
+    PyEval_ReleaseLock();
+  }
+
   free( Self );
 }
 
