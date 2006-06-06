@@ -16,6 +16,7 @@ struct devicestate
   VScope    *vscope;
   TQueue    *data;
   pthread_t thread;
+  int	    thread_id;
 };
 
 /* Init Function:
@@ -48,11 +49,11 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   
   if( strcmp( argv[0], "start" ) == 0 )
   {
-     pthread_create(&Tmp->thread, NULL, EndlessDataCollection, (void*)Tmp);
+     Tmp->thread_id = pthread_create(&Tmp->thread, NULL, EndlessDataCollection, (void*)Tmp);
   }
   if( strcmp( argv[0], "stop" ) == 0 )
   {
-     pthread_cancel(Tmp->thread);
+     pthread_cancel(Tmp->thread_id);
   }
 }
 
@@ -77,8 +78,7 @@ void *EndlessDataCollection(void* DeviceHandle)
   {
     //sleep(1)
     //printf("thread running\n");
-    readVScopeData(Tmp->vscope, buffer, 20000)
-    //strdup 
-    Tmp->queue->AddElement(buffer);
+    readVScopeData(Tmp->vscope, buffer, 20000);
+    TQueue_AddElement(Tmp->data,strdup(buffer));
   }
 }
