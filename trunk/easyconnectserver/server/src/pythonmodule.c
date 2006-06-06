@@ -56,13 +56,14 @@ int PythonModule_Destroy( PythonModule* Self )
 }
 
 
-
 PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName )
 {
   PyObject* pName;
   
   PythonEnv* Self = (PythonEnv*) malloc( sizeof(PythonEnv) );
   Self->Module=NULL;
+  Self->List = NULL;
+  Self->ListLength = 0;
   Self->ModuleName = (char*) malloc( sizeof(char) * strlen(ModuleName)+1 );
   strcpy( Self->ModuleName, ModuleName );
 
@@ -79,77 +80,146 @@ PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName )
   if( Self->Module == NULL )
   {
     PyErr_Print();
-    PyThreadState_Swap(NULL); 
-    PyEval_ReleaseLock();
+    PythonEnv_LeaveThread( Self );
     PythonEnv_Destroy( Self );
     return NULL;
   }
 
   Py_INCREF(Self->Module);
   Py_DECREF(pName);
- 
-  PyThreadState_Swap(NULL); 
-  PyEval_ReleaseLock();
+
+  PythonEnv_LeaveThread( Self ); 
   return Self;
 }
 
-
-int PythonEnv_ImportFunctions( PythonEnv* Self )
+int PythonEnv_EnterThread( PythonEnv* Self )
 {
-  char* FuncName;
-  PyObject* pFunc;
-  PyObject* Ret;
-  PyObject* pClass;
-  FuncName = (char*) malloc( sizeof(char) * ( strlen( Self->ModuleName ) +
-						    strlen( ".__introspection__" ) +
-						    1
-						   ));
-  sprintf( FuncName, "%s%s\0", Self->ModuleName, ".__introspection__");
-  printf("%s\n", FuncName );
-  pFunc = PyObject_GetAttrString( Self->Module, FuncName ); 
-  free( FuncName );
+  PyEval_AcquireLock(); 
+  PyThreadState_Swap( Self->CurrentThreadState );
+  return 0;
+}
 
-  if( pFunc && PyCallable_Check( pFunc ) )
+int PythonEnv_LeaveThread( PythonEnv* Self )
+{
+  PyThreadState_Swap(NULL); 
+  PyEval_ReleaseLock();
+  return 0;	
+}
+
+PyObject* PythonEnv_CreateArgument( char* String )
+{
+  PyObject* Param; 
+  if( String == NULL )
+    Param = PyTuple_New(0);
+  else
+    Param = PyTuple_Pack(1,PyString_FromString(String));
+  return Param; 
+}
+
+PyObject* PythonEnv_InstatiateClass( PythonEnv* Self, char* Name, char* Parameter )
+{
+  if( Name == NULL || Self == NULL )
+    return NULL;
+
+  PyObject* Instance;
+  PyObject* Class;
+
+  Class = PyObject_GetAttrString( Self->Module, Name );  
+  if( !Class || !PyClass_Check( Class ) )
   {
-
-    Py_DECREF(pFunc);
-    Ret = PyObject_CallObject(pFunc, NULL);
-    if( PyString_Check( Ret ) )
-    {
-      pClass = PyObject_GetAttr( Self->Module, Ret );  
-    }
-
+    PyErr_Print();
+    PythonEnv_LeaveThread( Self );   
+    return NULL;  
   }
-  return -1;
+  Instance = PyInstance_New( Class, PythonEnv_CreateArgument( Parameter ), NULL );
+  if( !Instance || !PyInstance_Check( Instance) )
+  {
+    PyErr_Print();
+    PythonEnv_LeaveThread( Self );   
+    return NULL;  
+  }
+  return Instance;
 }
 
 
-
-char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function )
+int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter)
 {
   PyObject* pFunc;
+  PyObject* Ret;
+  PyObject* RetString;
+  PyObject* pClass;
+  char* FuncName;
+  char* ClassName;
+  int Size, i;
   PyObject* Module = Self->Module;
   Py_INCREF( Module );
-  PyEval_AcquireLock(); 
-  PyThreadState_Swap( Self->CurrentThreadState );
 
-  pFunc = PyObject_GetAttrString( Module, Function ); 
-  Py_DECREF( Module );
-
-  if( pFunc && PyCallable_Check( pFunc ) )
-  {
-    Py_DECREF(pFunc);
-    PyObject_CallObject(pFunc, NULL);
-  }
-  else
+  PythonEnv_EnterThread( Self );
+  
+  pFunc = PyObject_GetAttrString( Module, "__introspection__" ); 
+  if( !pFunc || !PyCallable_Check( pFunc ) )
   {
     PyErr_Print();
+    PythonEnv_LeaveThread( Self );   
+    return -1;
   }
-  PyObject_Print( Self->Module, stderr, 0 );
-  PyThreadState_Swap(NULL); 
-  PyEval_ReleaseLock();
 
-  return NULL;
+  Ret = PyObject_CallFunction(pFunc, NULL );
+  Py_DECREF(pFunc);
+  if( !Ret || !PyList_Check( Ret ) )
+  {
+    PyErr_Print();
+    PythonEnv_LeaveThread( Self );   
+    return -1;
+  }
+  RetString = PyList_GetItem( Ret, 0 );
+  Py_INCREF( RetString );
+  Py_DECREF( Ret );
+  
+  Self->Instance = PythonEnv_InstatiateClass( Self, PyString_AsString( RetString ), Parameter ); 
+  Py_DECREF( RetString );
+  
+  Ret = PyObject_CallMethod( Self->Instance, "__introspection__", NULL );
+  if( !Ret || !PyList_Check( Ret ) )
+  {
+    PyErr_Print();
+    PythonEnv_LeaveThread( Self );   
+    return -1;
+  }
+  
+   
+  //PyObject_Print( Ret, stderr, 0 );
+  Size = PyList_Size(Ret);
+  Self->List = (char**) malloc( sizeof(char*) * Size );
+  for( i = 0; i < Size; i++ )
+  {
+    RetString = PyList_GetItem( Ret, i );
+    Self->List[i] = strdup( PyString_AsString( RetString ));
+  }
+  Self->ListLength = Size;
+  
+  PythonEnv_LeaveThread( Self );
+  return 0;
+}
+
+char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function, char* Parameter )
+{
+  PythonEnv_EnterThread( Self );
+  
+  PyObject* Ret;
+  char* RetString = NULL;
+  
+  Ret = PyObject_CallMethod( Self->Instance, Function, "s", Parameter );
+  if( !Ret || !PyString_Check( Ret ) )
+  {
+    PyErr_Print();
+    PythonEnv_LeaveThread( Self );   
+    return NULL;
+  } 
+  RetString = strdup( PyString_AsString( Ret ) ); 
+  Py_DECREF( Ret );
+  PythonEnv_LeaveThread( Self ); 
+  return RetString;
 }
 
 int PythonEnv_Destroy( PythonEnv* Self )
@@ -167,6 +237,5 @@ int PythonEnv_Destroy( PythonEnv* Self )
 
   free( Self );
 }
-
 
 

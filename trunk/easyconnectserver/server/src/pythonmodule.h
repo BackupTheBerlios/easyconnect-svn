@@ -23,7 +23,7 @@
 #include <python2.4/Python.h>
 #include <stdlib.h>
 
-/*
+
 typedef struct pythonfunction PythonFunction;
 struct pythonfunction
 {
@@ -31,20 +31,11 @@ struct pythonfunction
   PyObject* Func; 
 };
 
-PythonFunction* PythonFunction_Init( char* FunctionName, PyObject* Func );
-char* PythonFunction_Execute( PythonFunction* Self, int argc, char** argv );
-int PythonFunction_Destroy( PythonFunction* Self );
-*/
-
 typedef struct pythonmodule PythonModule;
 struct pythonmodule
 {
   PyThreadState* MainThreadState;
 };
-
-PythonModule* PythonModule_Init();
-int PythonModule_AddPath( PythonModule* Self, char* Path );
-int PythonModule_Destroy( PythonModule* Self );
 
 typedef struct pythonenv PythonEnv;
 struct pythonenv
@@ -56,13 +47,44 @@ struct pythonenv
   
   PyObject* Instance;
   
-  //PythonFunction* List;
+  char** List;
+  int ListLength;
 };
 
 
+/////////////////////////////////////////////////////////////////
+// PythonModule Functions
+/////////////////////////////////////////////////////////////////
+
+PythonModule* PythonModule_Init();
+int PythonModule_AddPath( PythonModule* Self, char* Path );
+int PythonModule_Destroy( PythonModule* Self );
+
+
+/////////////////////////////////////////////////////////////////
+// PythonEnv Functions
+/////////////////////////////////////////////////////////////////
+
 PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName );
-int PythonEnv_ImportFunctions( PythonEnv* Self );
-char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function );
+
+int PythonEnv_EnterThread( PythonEnv* Self );
+
+int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter );
+char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function, char* Parameter );
+
+int PythonEnv_LeaveThread( PythonEnv* Self );
+
+PyObject* PythonEnv_CreateArgument( char* String );
+PyObject* PythonEnv_InstatiateClass( PythonEnv* Self, char* Name, char* Parameter );
+
 int PythonEnv_Destroy( PythonEnv* Self );
 
+/////////////////////////////////////////////////////////////////
+// PythonFunction Functions
+/////////////////////////////////////////////////////////////////
+
+
+PythonFunction* PythonFunction_Init( char* FunctionName, PyObject* Func );
+char* PythonFunction_Execute( PythonFunction* Self, char* Parameter );
+int PythonFunction_Destroy( PythonFunction* Self );
 
