@@ -49,10 +49,13 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   
   if( strcmp( argv[0], "start" ) == 0 )
   {
+     SetVScopeMode(Tmp->vscope,MODE_COUNTER);
+     StartVScope(Tmp->vscope);
      Tmp->thread_id = pthread_create(&Tmp->thread, NULL, EndlessDataCollection, (void*)Tmp);
   }
   if( strcmp( argv[0], "stop" ) == 0 )
   {
+     StopVScope(Tmp->vscope);
      pthread_cancel(Tmp->thread_id);
   }
 }
@@ -79,6 +82,6 @@ void *EndlessDataCollection(void* DeviceHandle)
     //sleep(1)
     //printf("thread running\n");
     readVScopeData(Tmp->vscope, buffer, 20000);
-    TQueue_AddElement(Tmp->data,strdup(buffer));
+    //TQueue_AddElement(Tmp->data,strdup(buffer));
   }
 }

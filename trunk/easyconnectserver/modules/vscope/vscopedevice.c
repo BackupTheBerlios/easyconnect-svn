@@ -48,10 +48,14 @@ VScope* openVScope()
     }	
   }
 
-  if (tmp->vscope_handle==0) return (0);
+  if (tmp->vscope_handle==0)
+  {
+    printf("VScope Device Error! (check cable and permissions)\n");
+    return (0);
+  }
   else 
   {
-    printf("found\n");
+    printf("VScope Device Found!\n");
     usb_set_configuration(tmp->vscope_handle,1);
     usb_claim_interface(tmp->vscope_handle,0);
     usb_set_altinterface(tmp->vscope_handle,0);
@@ -78,7 +82,8 @@ int readVScopeData(VScope* self, char* data, int length)
 {
   int i;
   i = usb_bulk_read(self->vscope_handle,0x83,data,length,100);	
-  printf("%i\n",i);
+  //printf("%i\n",i);
+  return i;
 }
 
 int readVScopeResults(VScope* self,char *data)
