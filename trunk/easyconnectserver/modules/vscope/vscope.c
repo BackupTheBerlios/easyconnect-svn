@@ -4,15 +4,19 @@
 
 // linux usb subsystem
 #include <usb.h>
+#include "vscopedevice.h" 
+#include "tqueue.h"
 
 
-typedef struct vscope Vscope;
-struct vscope 
+void *EndlessDataCollection(void* DeviceHandle);
+
+typedef struct devicestate DeviceState;
+struct devicestate 
 {
-  struct usb_dev_handle *vscope_handle;
+  VScope    *vscope;
+  TQueue    *data;
+  pthread_t thread;
 };
-
-char* ReadChannel( Vscope* Self, int Channel);
 
 /* Init Function:
  * If you need to store information you can use the Device_Init() function
@@ -21,31 +25,10 @@ char* ReadChannel( Vscope* Self, int Channel);
  */
 void* Init( char* InitString )
 {
-  Vscope* New = (Vscope*) malloc( sizeof( Vscope ) );
+  DeviceState* New = (DeviceState*) malloc( sizeof( DeviceState ) );
 
-  unsigned char located = 0;
-  struct usb_bus *bus;
-  struct usb_device *dev;
-  usb_init();
-
-  usb_find_busses();
-  usb_find_devices();
-
-  for (bus = usb_busses; bus; bus = bus->next)
-  {
-    for (dev = bus->devices; dev; dev = dev->next)
-    { 
-      if (dev->descriptor.idVendor == 0x0400)
-      { 
-        located++;
-        New->vscope_handle = usb_open(dev);
-      }
-    }
-  }
-
-  usb_set_configuration(New->vscope_handle,1);
-  usb_claim_interface(New->vscope_handle,0);
-  usb_set_altinterface(New->vscope_handle,0);
+  New->vscope = openVScope();
+  New->data = TQueue_Init();
 
   return (void*) New;
 }
@@ -56,21 +39,20 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   {
     return NULL;
   }
-  Vscope* Tmp = (Vscope*) DeviceHandle;
+  DeviceState* Tmp = (DeviceState*) DeviceHandle;
   
   // This should be read from the config file
   // Anyway compare the name of the called function
   // with yours, so you can determine which function
   // needs to be called
   
-  if( strcmp( argv[0], "readchannel" ) == 0 )
+  if( strcmp( argv[0], "start" ) == 0 )
   {
-    int channel = 0;
-
-    channel = atoi(argv[1]);
-
-    return ReadChannel( Tmp, channel );
-    
+     pthread_create(&Tmp->thread, NULL, EndlessDataCollection, (void*)Tmp);
+  }
+  if( strcmp( argv[0], "stop" ) == 0 )
+  {
+     pthread_cancel(Tmp->thread);
   }
 }
 
@@ -80,28 +62,23 @@ int Destroy( void* DeviceHandle )
   {
     return -1;
   }
-  Vscope* Tmp = (Vscope*) DeviceHandle;
-  usb_close(Tmp->vscope_handle);
-
+  DeviceState* Tmp = (DeviceState*) DeviceHandle;
+  closeVScope(Tmp->vscope);
   free( Tmp );
   return 0;
 }
 
 
-char* ReadChannel( Vscope* Self, int Channel )
+void *EndlessDataCollection(void* DeviceHandle)
 {
-  unsigned char receive_data[2];
-
-  char* Ret = (char*) malloc( sizeof( char) * 3 );
-
-  char send_data[1];
-  send_data[0] = (char)Channel;
-
-  usb_bulk_write(Self->vscope_handle,2,send_data,1,1);
- 
-  usb_bulk_read(Self->vscope_handle,0x83,receive_data,2,1);
-
-  sprintf(Ret,"%i\n",((int)receive_data[1]*255)+(int)receive_data[0]);
-
-  return Ret;
+  char buffer[20000]; 
+  DeviceState* Tmp = (DeviceState*) DeviceHandle;
+  while(1)
+  {
+    //sleep(1)
+    //printf("thread running\n");
+    readVScopeData(Tmp->vscope, buffer, 20000)
+    //strdup 
+    Tmp->queue->AddElement(buffer);
+  }
 }
