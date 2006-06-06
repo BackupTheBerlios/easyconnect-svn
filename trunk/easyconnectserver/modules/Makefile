@@ -5,8 +5,10 @@ cpu-watcher/cpu-watcher.so: cpu-watcher/cpu-watcher.c
 	gcc -g -o cpu-watcher/cpu-watcher.so -shared cpu-watcher/cpu-watcher.o
 
 vscope/vscope.so: vscope/vscope.c 
+	gcc -g -c -fPIC vscope/tqueue.c -o vscope/tqueue.o
+	gcc -g -c -fPIC vscope/vscopedevice.c -o vscope/vscopedevice.o
 	gcc -g -c -fPIC vscope/vscope.c -o vscope/vscope.o
-	gcc -g -o vscope/vscope.so -shared vscope/vscope.o -lusb
+	gcc -g -o vscope/vscope.so -shared vscope/vscope.o vscope/vscopedevice.o vscope/tqueue.o -lusb
 
 clean:
-	rm *.o *.so
+	rm vscope/*.o vscope/*.so
