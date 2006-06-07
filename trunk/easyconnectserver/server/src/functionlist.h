@@ -26,55 +26,37 @@
 #ifndef __FUNCTIONLIST_H
 #define __FUNCTIONLIST_H
 
-#include "devicelist.h"
 #include "tcpcliserver/tcpcliserver.h"
 
-typedef struct function Function;
-struct function
+typedef struct modfunction ModFunction;
+struct modfunction
 {
   char* Name;
-	    
   char* Error;
   char* Help;
 
-  Device* Dev;  
-
-  char* (*Callback)(char*, int, void*);
-  void* Argument;
-  
-  Function* Next;
-  Function* Previous;
+  ModFunction* Next;
+  ModFunction* Previous;
 };
 
-Function* Function_Init( char* Name, char* Error, char* Help,
-			 char* (*Callback)(char*, int, void*), void* Argument );
+ModFunction* ModFunction_Init( char* Name, char* Error, char* Help );
+int ModFunction_Destroy( ModFunction* Self );
 
-int Function_Destroy( Function* Self );
-
-
-typedef struct functionlist FunctionList;
-struct functionlist
+typedef struct modfunctionlist ModFunctionList;
+struct modfunctionlist
 {
-  Function* First;
-  Function* Last;
+  ModFunction* First;
+  ModFunction* Last;
 
   int Length;
-
-  char* List;
 };
 
-FunctionList* FunctionList_Init( );
+ModFunctionList* ModFunctionList_Init( );
 
-int FunctionList_AddFunction( FunctionList* Self,  Function* Func );
+int ModFunctionList_AddFunction( ModFunctionList* Self,  ModFunction* Func );
 
-int FunctionList_RegisterAllFunctions( FunctionList* Self, TcpCliServer* Server );
+ModFunction* ModFunctionList_GetElementByName( ModFunctionList* Self, char* FunctionName );
 
-int FunctionList_GenerateList( FunctionList* Self );
-
-Function* FunctionList_GetElementByName( FunctionList* Self, char* FunctionName );
-
-int FunctionList_Destroy( FunctionList* Self );
-
-
+int ModFunctionList_Destroy( ModFunctionList* Self );
 
 #endif

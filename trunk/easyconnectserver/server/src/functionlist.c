@@ -25,22 +25,20 @@
 
 #include "functionlist.h"
 
-Function* Function_Init( char* Name, char* Error, char* Help,
-			 char* (*Callback)(char*, int, void*), void* Argument )
+ModFunction* ModFunction_Init( char* Name, char* Error, char* Help )
 {
   if( Name == NULL )
   {
     return NULL;
   }
-  Function* Self = (Function*) malloc( sizeof( Function ));
-
-  Self->Name = (char*) malloc( sizeof(char) * strlen( Name )+1);
-  strcpy( Self->Name, Name );
-
+  
+  ModFunction* Self = (ModFunction*) malloc( sizeof( ModFunction ));
+  
+  Self->Name = strdup( Name );
+  
   if( Error != NULL )
   {
-    Self->Error = (char*) malloc( sizeof(char) * strlen( Error )+1);
-    strcpy( Self->Error, Error );
+    Self->Error = strdup( Error );
   } else
   {
     Self->Error = NULL;
@@ -48,25 +46,18 @@ Function* Function_Init( char* Name, char* Error, char* Help,
 
   if( Help != NULL )
   {
-    Self->Help = (char*) malloc( sizeof(char) * strlen( Help )+1);
-    strcpy( Self->Help, Help );
+    Self->Help = strdup( Help );
   } else
   {
     Self->Help = NULL;
   }
   
-  Self->Dev = NULL;
-  Self->Callback = Callback;
-  Self->Argument = Argument;
-  
   Self->Next = NULL;
   Self->Previous = NULL;
-  
   return Self;
-
 }
 
-int Function_Destroy( Function* Self )
+int ModFunction_Destroy( ModFunction* Self )
 {
   if( Self == NULL )
   {
@@ -91,16 +82,16 @@ int Function_Destroy( Function* Self )
 
 
 
-FunctionList* FunctionList_Init()
+ModFunctionList* ModFunctionList_Init()
 {
-  FunctionList* Self = (FunctionList*) malloc( sizeof( FunctionList ));
+  ModFunctionList* Self = (ModFunctionList*) malloc( sizeof( ModFunctionList ));
   Self->First = NULL;
   Self->Last = NULL;
   Self->Length = 0;
   return Self;
 }
 
-int FunctionList_AddFunction( FunctionList* Self, Function* Func )
+int ModFunctionList_AddFunction( ModFunctionList* Self, ModFunction* Func )
 {
   if( Self == NULL )
   {
@@ -123,64 +114,15 @@ int FunctionList_AddFunction( FunctionList* Self, Function* Func )
   return Self->Length;
 }
 
-int FunctionList_RegisterAllFunctions( FunctionList* Self, TcpCliServer* Server )
-{
-  if( Self == NULL || Server == NULL )
-  {
-    return -1;
-  }
-  
-  FunctionList_GenerateList( Self );
-  int i = 0;
-  Function* Tmp = Self->First;
-  for( i = 0; i < Self->Length; i++ )
-  {
-    TcpCliServer_RegisterFunction( Server, Tmp->Name, Tmp->Callback, Tmp );
-    Tmp = Tmp->Next;
-  }
-  return 0;
-}
 
-int FunctionList_GenerateList( FunctionList* Self )
-{
-  if( Self == NULL )
-  {
-    return -1;
-  }
-
-  Function* Tmp = Self->First;
-  int StringLength = 0;
-  int i;
-  for( i = 0; i < Self->Length; i++ )
-  {
-    StringLength += strlen(Tmp->Name)+1;
-    Tmp = Tmp->Next; 
-  }
-  
-  Self->List = (char*) malloc( sizeof(char*) * StringLength + 1 );
-
-  Self->List[0] = 0;
-  Tmp = Self->First;
-  
-  for( i = 0; i < Self->Length; i++ )
-  {
-    strcat( Self->List, Tmp->Name );
-    strcat( Self->List, "\n" );
-    Tmp = Tmp->Next; 
-  }  
-  Self->List[StringLength] = '\0';
-  return 0; 
-}
-
-
-Function* FunctionList_GetElementByName( FunctionList* Self, char* FunctionName )
+ModFunction* ModFunctionList_GetElementByName( ModFunctionList* Self, char* FunctionName )
 {
   if( Self == NULL )
   {
     return NULL;
   }
   int i;
-  Function* Tmp = Self->First;
+  ModFunction* Tmp = Self->First;
   for( i = 0; i < Self->Length; i++ )
   {
     if( strcmp( Tmp->Name, FunctionName ) == 0 )
@@ -193,19 +135,19 @@ Function* FunctionList_GetElementByName( FunctionList* Self, char* FunctionName 
 }
 
 
-int FunctionList_Destroy( FunctionList* Self )
+int ModFunctionList_Destroy( ModFunctionList* Self )
 {
   if( Self == NULL )
   {
     return -1;
   }
-  Function* Tmp;  
+  ModFunction* Tmp;  
   int i;
   for( i = 0; i < Self->Length; i++ )
   { 
     Tmp = Self->Last;
     Self->Last = Tmp->Previous;
-    Function_Destroy( Tmp ); 
+    ModFunction_Destroy( Tmp ); 
   }
   return 0;
 }

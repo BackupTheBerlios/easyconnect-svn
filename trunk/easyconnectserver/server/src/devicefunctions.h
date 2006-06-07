@@ -23,10 +23,9 @@
  */
 
 
-#include "devicelist.h"
+#include "modulelist.h"
 #include "functionlist.h"
 #include "config.h"
 
 char* CommunicateCallback( char* Callstring, int Socket, void* Parameter );
-int AddDeviceFromPath( DeviceList* List, char* DeviceCfgPath, FunctionList* FuncList );
 char* CallFunction( char* Callstring, Device* Dev );

@@ -47,12 +47,13 @@ GeneralCfg* GeneralCfg_Init( char* GeneralCfgFile )
 
   // Reading values from ini file
   Self->Ip = strdup( iniparser_getsecstring( Dict, NULL, "ip", "127.0.0.1" ) );
-  Self->Error = strdup( iniparser_getsecstring( Dict, NULL, "default_error", "Command not found." ));
+  Self->Error = strdup( iniparser_getsecstring( Dict, NULL, "default_error", "Command not found.\n" ));
   Self->RawPort = iniparser_getint( Dict, "raw_port", 9090 );
   Self->CliPort = iniparser_getint( Dict, "cli_port", 9099 );
   Self->RawEnable = iniparser_getint( Dict, "raw_enable",1 );
   Self->CliEnable = iniparser_getint( Dict, "cli_enable",1 ); 
   
+
   iniparser_freedict(Dict);
   return Self;
 }
@@ -66,7 +67,11 @@ char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath )
 {
   char* ret = NULL;
   dictionary* Dict = iniparser_load( DeviceCfgPath );
-  ret = strdup( iniparser_getsecstring( Dict, NULL, FieldName, NULL )) ;
+  ret = iniparser_getsecstring( Dict, NULL, FieldName, NULL );
+  if( ret != NULL )
+  {
+    ret = strdup( ret );
+  }
   iniparser_freedict(Dict);
   return ret;
 }
@@ -89,6 +94,15 @@ char* DeviceCfg_GetDescription( char* DeviceCfgPath )
 char* DeviceCfg_GetLibPath( char* DeviceCfgPath )
 {
   return DeviceCfg_GetField( "libfile", DeviceCfgPath );
+}
+
+char* DeviceCfg_GetLibType( char* DeviceCfgPath )
+{
+  char* ret = DeviceCfg_GetField( "libtype", DeviceCfgPath );
+  if( ret == NULL )
+    return strdup("c");
+  
+  return ret;
 }
 
 int DeviceFunctionCfg_GetNumberofFunctions( char* DeviceCfgPath )
@@ -118,7 +132,9 @@ char* DeviceFunctionCfg_GetField( int FunctionNumber, char* FieldName, char* Dev
   char* Section = NULL;
   dictionary* Dict = iniparser_load( DeviceCfgPath );
   Section = iniparser_getsecname( Dict, FunctionNumber );  
-  ret = strdup( iniparser_getsecstring( Dict, Section, FieldName, NULL ) );
+  ret = iniparser_getsecstring( Dict, Section, FieldName, NULL ) ;
+  if( ret != NULL )
+    ret = strdup(ret);
 
   iniparser_freedict( Dict );
   return ret; 
@@ -132,12 +148,21 @@ char* DeviceFunctionCfg_GetName( int FunctionNumber, char* DeviceFunctionCfgPath
 
 char* DeviceFunctionCfg_GetError( int FunctionNumber, char* DeviceFunctionCfgPath )
 {
-  return DeviceFunctionCfg_GetField( FunctionNumber, "error", DeviceFunctionCfgPath );
+  char* Ret = DeviceFunctionCfg_GetField( FunctionNumber, "error", DeviceFunctionCfgPath );
+  if( Ret == NULL )
+    Ret = strdup("\n");
+
+  return Ret;
 }
 	
 char* DeviceFunctionCfg_GetHelp( int FunctionNumber, char* DeviceFunctionCfgPath )
 {
-  return DeviceFunctionCfg_GetField( FunctionNumber, "help", DeviceFunctionCfgPath );
+  char* Ret = DeviceFunctionCfg_GetField( FunctionNumber, "help", DeviceFunctionCfgPath );
+  if( Ret == NULL )
+    Ret = strdup("\n");
+
+  return Ret;
+ 
 }
 
 

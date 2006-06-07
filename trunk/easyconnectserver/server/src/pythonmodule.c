@@ -22,9 +22,9 @@
 
 #include "pythonmodule.h"
 
-PythonModule* PythonModule_Init()
+PythonEnv* PythonEnv_Init()
 {
-  PythonModule* Self = (PythonModule*) malloc( sizeof( PythonModule ) );
+  PythonEnv* Self = (PythonEnv*) malloc( sizeof( PythonEnv ) );
   
   Py_Initialize();
   PyEval_InitThreads();
@@ -34,19 +34,23 @@ PythonModule* PythonModule_Init()
   return Self;
 }
 
-int PythonModule_AddPath( PythonModule* Self, char* Path )
+int PythonEnv_AddPath( PythonEnv* Self, char* Path )
 {
+  if( Path == NULL )
+    return -1;
   char* Command = (char*) malloc( sizeof( char ) * 
 				    ( strlen( Path ) +
 				    26 ));
-  sprintf( Command, "import sys\nsys.path += '%s'", Path );
+  PyRun_SimpleString("import sys");
+		  
+  sprintf( Command, "sys.path.append('%s')", Path );
   PyRun_SimpleString( Command );
   return 0;
 	
 }
 
 
-int PythonModule_Destroy( PythonModule* Self )
+int PythonEnv_Destroy( PythonEnv* Self )
 {
   PyEval_AcquireLock();
   PyThreadState_Swap(Self->MainThreadState); 
@@ -56,21 +60,21 @@ int PythonModule_Destroy( PythonModule* Self )
 }
 
 
-PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName )
+PythonModule* PythonModule_Init( PythonEnv* Environment, char* ModuleName )
 {
   PyObject* pName;
   
-  PythonEnv* Self = (PythonEnv*) malloc( sizeof(PythonEnv) );
+  PythonModule* Self = (PythonModule*) malloc( sizeof(PythonModule) );
   Self->Module=NULL;
   Self->List = NULL;
   Self->ListLength = 0;
   Self->ModuleName = (char*) malloc( sizeof(char) * strlen(ModuleName)+1 );
   strcpy( Self->ModuleName, ModuleName );
 
-  Self->Master = Master;
+  Self->Environment = Environment;
   
   PyEval_AcquireLock(); 
-  Self->CurrentThreadState = PyThreadState_New( Self->Master->MainThreadState->interp );
+  Self->CurrentThreadState = PyThreadState_New( Self->Environment->MainThreadState->interp );
   PyThreadState_Swap( Self->CurrentThreadState );
 
   pName = PyString_FromString(Self->ModuleName);
@@ -80,33 +84,33 @@ PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName )
   if( Self->Module == NULL )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );
-    PythonEnv_Destroy( Self );
+    PythonModule_LeaveThread( Self );
+    PythonModule_Destroy( Self );
     return NULL;
   }
 
   Py_INCREF(Self->Module);
   Py_DECREF(pName);
 
-  PythonEnv_LeaveThread( Self ); 
+  PythonModule_LeaveThread( Self ); 
   return Self;
 }
 
-int PythonEnv_EnterThread( PythonEnv* Self )
+int PythonModule_EnterThread( PythonModule* Self )
 {
   PyEval_AcquireLock(); 
   PyThreadState_Swap( Self->CurrentThreadState );
   return 0;
 }
 
-int PythonEnv_LeaveThread( PythonEnv* Self )
+int PythonModule_LeaveThread( PythonModule* Self )
 {
   PyThreadState_Swap(NULL); 
   PyEval_ReleaseLock();
   return 0;	
 }
 
-PyObject* PythonEnv_CreateArgument( char* String )
+PyObject* PythonModule_CreateArgument( char* String )
 {
   PyObject* Param; 
   if( String == NULL )
@@ -116,7 +120,7 @@ PyObject* PythonEnv_CreateArgument( char* String )
   return Param; 
 }
 
-PyObject* PythonEnv_InstatiateClass( PythonEnv* Self, char* Name, char* Parameter )
+PyObject* PythonModule_InstatiateClass( PythonModule* Self, char* Name, char* Parameter )
 {
   if( Name == NULL || Self == NULL )
     return NULL;
@@ -128,21 +132,21 @@ PyObject* PythonEnv_InstatiateClass( PythonEnv* Self, char* Name, char* Paramete
   if( !Class || !PyClass_Check( Class ) )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );   
+    PythonModule_LeaveThread( Self );   
     return NULL;  
   }
-  Instance = PyInstance_New( Class, PythonEnv_CreateArgument( Parameter ), NULL );
+  Instance = PyInstance_New( Class, PythonModule_CreateArgument( Parameter ), NULL );
   if( !Instance || !PyInstance_Check( Instance) )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );   
+    PythonModule_LeaveThread( Self );   
     return NULL;  
   }
   return Instance;
 }
 
 
-int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter)
+int PythonModule_ImportFunctions( PythonModule* Self, char* Parameter)
 {
   PyObject* pFunc;
   PyObject* Ret;
@@ -154,13 +158,13 @@ int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter)
   PyObject* Module = Self->Module;
   Py_INCREF( Module );
 
-  PythonEnv_EnterThread( Self );
+  PythonModule_EnterThread( Self );
   
   pFunc = PyObject_GetAttrString( Module, "__introspection__" ); 
   if( !pFunc || !PyCallable_Check( pFunc ) )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );   
+    PythonModule_LeaveThread( Self );   
     return -1;
   }
 
@@ -169,21 +173,21 @@ int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter)
   if( !Ret || !PyList_Check( Ret ) )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );   
+    PythonModule_LeaveThread( Self );   
     return -1;
   }
   RetString = PyList_GetItem( Ret, 0 );
   Py_INCREF( RetString );
   Py_DECREF( Ret );
   
-  Self->Instance = PythonEnv_InstatiateClass( Self, PyString_AsString( RetString ), Parameter ); 
+  Self->Instance = PythonModule_InstatiateClass( Self, PyString_AsString( RetString ), Parameter ); 
   Py_DECREF( RetString );
   
   Ret = PyObject_CallMethod( Self->Instance, "__introspection__", NULL );
   if( !Ret || !PyList_Check( Ret ) )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );   
+    PythonModule_LeaveThread( Self );   
     return -1;
   }
   
@@ -198,13 +202,13 @@ int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter)
   }
   Self->ListLength = Size;
   
-  PythonEnv_LeaveThread( Self );
+  PythonModule_LeaveThread( Self );
   return 0;
 }
 
-char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function, char* Parameter )
+char* PythonModule_ExecuteFunction( PythonModule* Self, char* Function, char* Parameter )
 {
-  PythonEnv_EnterThread( Self );
+  PythonModule_EnterThread( Self );
   
   PyObject* Ret;
   char* RetString = NULL;
@@ -213,16 +217,55 @@ char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function, char* Paramete
   if( !Ret || !PyString_Check( Ret ) )
   {
     PyErr_Print();
-    PythonEnv_LeaveThread( Self );   
+    PythonModule_LeaveThread( Self );   
     return NULL;
   } 
   RetString = strdup( PyString_AsString( Ret ) ); 
   Py_DECREF( Ret );
-  PythonEnv_LeaveThread( Self ); 
+  PythonModule_LeaveThread( Self ); 
   return RetString;
 }
 
-int PythonEnv_Destroy( PythonEnv* Self )
+char* PythonModule_Callback( char* Callstring, int Socket, void* Parameter )
+{
+  PythonModule* Self = (PythonModule*) Parameter;
+  char* End;
+  char* Function;
+  char* Argument;
+  char* Tmp;
+  int j;
+  int length;
+
+  Argument = strchr( Callstring, '.' );
+  Argument++;
+ 
+  
+  End = strchr( Argument, ' ' ); 
+  if( End == NULL )
+  {
+    Function = Argument;
+    Argument = NULL;
+    //printf("Function = %s\nArgument is null\n",Function );
+  }else
+  {
+    length = strlen(Argument) - strlen(End);
+    Function = (char*) malloc( sizeof(char) * ( length+1));
+    strncpy( Function, Argument, length);
+    Function[length] = '\0';
+
+    Tmp = End;
+    End = Tmp + strlen(Tmp);
+    for(j = 0; Tmp+j < End && Tmp[j] == ' '; j++ );
+    Argument = Tmp + j;
+
+    //printf("Function = %s\nArgument = %s\n",Function, Argument );
+  }
+
+  return PythonModule_ExecuteFunction( Self, Function, Argument ); 
+
+}
+
+int PythonModule_Destroy( PythonModule* Self )
 {
   if( Self != NULL )  
   {

@@ -23,62 +23,61 @@
 #include <python2.4/Python.h>
 #include <stdlib.h>
 
-
-typedef struct pythonfunction PythonFunction;
-struct pythonfunction
+typedef struct pythonenv PythonEnv;
+struct pythonenv
 {
-  char* FunctionName;
-  PyObject* Func; 
+  PyThreadState* MainThreadState;
 };
 
 typedef struct pythonmodule PythonModule;
 struct pythonmodule
 {
-  PyThreadState* MainThreadState;
-};
-
-typedef struct pythonenv PythonEnv;
-struct pythonenv
-{
-  char* ModuleName;
-  PythonModule* Master;
+  PythonEnv* Environment;
   PyThreadState* CurrentThreadState;
+
+  // Module stuff
+  char* ModuleName;
   PyObject* Module;
-  
+ 
+  // Class instance 
   PyObject* Instance;
   
+  // Functionlist
   char** List;
   int ListLength;
 };
 
 
 /////////////////////////////////////////////////////////////////
-// PythonModule Functions
-/////////////////////////////////////////////////////////////////
-
-PythonModule* PythonModule_Init();
-int PythonModule_AddPath( PythonModule* Self, char* Path );
-int PythonModule_Destroy( PythonModule* Self );
-
-
-/////////////////////////////////////////////////////////////////
 // PythonEnv Functions
 /////////////////////////////////////////////////////////////////
 
-PythonEnv* PythonEnv_Init( PythonModule* Master, char* ModuleName );
-
-int PythonEnv_EnterThread( PythonEnv* Self );
-
-int PythonEnv_ImportFunctions( PythonEnv* Self, char* Parameter );
-char* PythonEnv_ExecuteFunction( PythonEnv* Self, char* Function, char* Parameter );
-
-int PythonEnv_LeaveThread( PythonEnv* Self );
-
-PyObject* PythonEnv_CreateArgument( char* String );
-PyObject* PythonEnv_InstatiateClass( PythonEnv* Self, char* Name, char* Parameter );
-
+PythonEnv* PythonEnv_Init();
+int PythonEnv_AddPath( PythonEnv* Self, char* Path );
 int PythonEnv_Destroy( PythonEnv* Self );
 
+
+/////////////////////////////////////////////////////////////////
+// PythonModule Functions
+/////////////////////////////////////////////////////////////////
+
+PythonModule* PythonModule_Init( PythonEnv* Environment, char* ModuleName );
+
+int PythonModule_EnterThread( PythonModule* Self );
+
+int PythonModule_ImportFunctions( PythonModule* Self, char* Parameter );
+char* PythonModule_ExecuteFunction( PythonModule* Self, char* Function, char* Parameter );
+
+int PythonModule_LeaveThread( PythonModule* Self );
+
+PyObject* PythonModule_CreateArgument( char* String );
+PyObject* PythonModule_InstatiateClass( PythonModule* Self, char* Name, char* Parameter );
+
+char* PythonModule_Callback( char* Callstring, int Socket, void* Parameter );
+
+int PythonModule_Destroy( PythonModule* Self );
+
+/*
 /////////////////////////////////////////////////////////////////
 // PythonFunction Functions
 /////////////////////////////////////////////////////////////////
@@ -87,4 +86,4 @@ int PythonEnv_Destroy( PythonEnv* Self );
 PythonFunction* PythonFunction_Init( char* FunctionName, PyObject* Func );
 char* PythonFunction_Execute( PythonFunction* Self, char* Parameter );
 int PythonFunction_Destroy( PythonFunction* Self );
-
+*/

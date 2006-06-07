@@ -23,16 +23,16 @@
  */
 
 
-#ifndef __DEVICELIST_H
-#define __DEVICELIST_H
+#ifndef __CMODULE_H
+#define __CMODULE_H
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <dlfcn.h>
 
-typedef struct device Device;
-struct device
+typedef struct cmodule CModule;
+struct cmodule
 {
   void* LibHandle; 
   void* Handle;
@@ -41,36 +41,17 @@ struct device
   int (*Destroy)( void* );
   
   char* Name;
-  char* Type;
-  char* Description;
- 
-  Device* Next;
-  Device* Previous; 
 };
 
-Device* Device_Init( char* LibFilePath, char* Name, char* Type,
-		     char* Description, char* InitString );
+CModule* CModule_Init( char* LibFilePath, char* Name, char* InitString );
 
-char* Device_Communicate( Device* Self, int argc, char** argv );
+char* CModule_Communicate( CModule* Self, int argc, char** argv );
 
-int Device_Destroy( Device* Self );
+char* CModule_ExecuteFunction( CModule* Self, char* Callstring );
 
+char* CModule_Callback( char* Callstring, int Socket, void* Parameter );
 
-typedef struct devicelist DeviceList;
-struct devicelist
-{
-  Device* First;
-  Device* Last;
+int CModule_Destroy( CModule* Self );
 
-  int Length;
-};
-
-DeviceList* DeviceList_Init( );
-
-//int DeviceList_AddDeviceFromPath( DeviceList* List, const char* DeviceCfgPath, FunctionList* FuncList );
-
-int DeviceList_Add( DeviceList* Self, Device* Dev );
-
-int DeviceList_Destroy( DeviceList* Self );
 
 #endif

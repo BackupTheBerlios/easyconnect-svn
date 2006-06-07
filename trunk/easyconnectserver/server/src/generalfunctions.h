@@ -28,7 +28,6 @@
 //#include <confuse.h>
 #include "iniparser/iniparser.h"
 #include "functionlist.h"
-#include "devicefunctions.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -36,9 +35,9 @@ char* HelpFunction( char* Callstring, int Socket, void* Func );
 char* ListFunctionsFunction( char* Callstring, int Socket, void* Func );
 char* ConnectFunction( char* Callstring, int Socket, void* Func );
 
-Function* GetFunctionFromFile( char* FileName, char* FunctionIdentifier,
-			       char* (*Callback)(char*, int, void*), void* Argument);
+//Function* GetFunctionFromFile( char* FileName, char* FunctionIdentifier,
+//			       char* (*Callback)(char*, int, void*), void* Argument);
 
-int AddGeneralFunctionsToList( FunctionList* List, char* FunctionsFile );
+//int AddGeneralFunctionsToList( FunctionList* List, char* FunctionsFile );
 
 #endif

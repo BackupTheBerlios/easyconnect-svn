@@ -22,37 +22,41 @@
  *
  */
 
+#include <signal.h>
 #include "config.h"
 #include "tcpcliserver/tcpcliserver.h"
-#include "functionlist.h"
-#include "devicelist.h"
-#include "devicefunctions.h"
+#include "modulelist.h"
+
+void sigfunc(int sig)
+{
+  if(sig != SIGINT)
+  return;
+  exit (EXIT_FAILURE);
+}
 
 int main( int argv, char** argc )
 {
-
+  signal(SIGINT, sigfunc);
   GeneralCfg* Tmp = GeneralCfg_Init( "../../config/easyconnect.conf" );
   //Function* Func = Function_Init( "../config/functions.cfg", "help" );
   
-  FunctionList* List = FunctionList_Init();
+  ModuleList* List = ModuleList_Init();
 
-  AddGeneralFunctionsToList( List, "../../config/ecfunc.conf" );
-  
-  DeviceList* DevList = DeviceList_Init();
-  AddDeviceFromPath( DevList, "../../config/devices/cpu-watcher.conf", List );
-  AddDeviceFromPath( DevList, "../../config/devices/vscope.conf", List );
+  ModuleList_AddFromPath( List, "../../config/devices/cpu-watcher.conf" );
+  ModuleList_AddFromPath( List, "../../config/devices/storage.conf" );
+  //  ModuleList_AddFromPath( List, "../../config/devices/vscope.conf" );
   
   TcpCliServer* New = TcpCliServer_Init();
   TcpCliServer_SetDefaultError( New, Tmp->Error ); 
   
-  FunctionList_RegisterAllFunctions( List, New );
+  ModuleList_RegisterAll( List, New );
   //RegisterFunctions( New, "../config/functions.cfg" );
   
   TcpCliServer_InitRaw( New, Tmp->Ip, Tmp->RawPort, 1000 );
   
   while(1)
   {
-    sleep(100);
+    sleep(1000);
   }
   return 0;
 }

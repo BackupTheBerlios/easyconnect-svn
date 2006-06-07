@@ -48,7 +48,6 @@ struct generalcfg
 };
 
 GeneralCfg* GeneralCfg_Init( char* GeneralCfgFile );
-
 int GeneralCfg_Destroy( GeneralCfg* Self );
 
 char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath );  
@@ -57,6 +56,7 @@ char* DeviceCfg_GetName( char* DeviceCfgPath );
 char* DeviceCfg_GetInitString( char* DeviceCfgPath );
 char* DeviceCfg_GetDescription( char* DeviceCfgPath );
 char* DeviceCfg_GetLibPath( char* DeviceCfgPath );
+char* DeviceCfg_GetLibType( char* DeviceCfgPath );
 
 int DeviceFunctionCfg_GetNumberofFunctions( char* DeviceCfgPath );
 
