@@ -67,7 +67,10 @@ class VCDStorage:
     String = '#'+str(StartTime)+'\n'
     String += '$dumpvars\n'
     for key in StartValue.keys():
-      String += str(StartValue[key]) + " " + self.ValDict[key]+"\n"
+      Val = str( StartValue[key] )
+      if( len(Val) > 1 ):
+	Val +=" " 
+      String += Val + self.ValDict[key]+"\n"
     
     String += '$end\n'
     self.WriteString( String )
@@ -79,7 +82,11 @@ class VCDStorage:
     for Value in ValList:
       String += '#'+str(self.Current)+'\n' 
       for key in Value.keys():
-	String += str(Value[key]) + " " + self.ValDict[key]+"\n"
+        Val = str( Value[key] )
+        if( len(Val) > 1 ):
+	  Val +=" " 
+	String += Val + self.ValDict[key]+"\n"
+
       self.Current += 1
 
     self.WriteString( String )
@@ -92,10 +99,30 @@ class VCDStorage:
     self.File.close()
 
 if __name__ == "__main__":
-  st = VCDStorage( "Save.txt", "Test"  )
-  st.AddReg( "Logik", 8 )
+  st = VCDStorage( "Save.txt", "Logik"  )
+  st.AddReg( "Bit0", 1 )
+  st.AddReg( "Bit1", 1 )
+  st.AddReg( "Bit2", 1 )
+  st.AddReg( "Bit3", 1 )
+  st.AddReg( "Bit4", 1 )
+  st.AddReg( "Bit5", 1 )
+  st.AddReg( "Bit6", 1 )
+  st.AddReg( "Bit7", 1 )
+  st.AddReg( "Output", 8 )
   st.CreateHeader()
-  st.SetStartValue( {"Logik": ToBin(0) }, 0 )
-  st.AddValues( [{"Logik":ToBin(10)}, {"Logik":ToBin(20)},{"Logik":ToBin(30)},{"Logik":ToBin(40)},{"Logik": ToBin(50) }])
+  st.SetStartValue( {"Bit0": 0,
+		     "Bit1": 0,
+		     "Bit2": 0,
+		     "Bit3": 0,
+		     "Bit4": 0,
+		     "Bit5": 0,
+		     "Bit6": 0, 
+		     "Bit7": 0,
+		     "Output": ToBin(0) }, 0 )
+  st.AddValues( [{"Bit0": 1, "Output":ToBin(100)}, 
+		 {"Bit0":0, "Output":ToBin(55)},
+		 {"Bit0":1, "Output":ToBin(10) },
+		 {"Bit0":0 },
+		 {"Bit0":1, "Output":ToBin(180) }])
 
  
