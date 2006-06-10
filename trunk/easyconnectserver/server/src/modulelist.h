@@ -36,7 +36,7 @@
 #include "tcpcliserver/tcpcliserver.h"
 #include "pythonmodule.h"
 
-enum ModuleTypes { MT_NONE, MT_C, MT_PYTHON };
+enum ModuleTypes { MT_NONE, MT_C, MT_PYTHON, MT_GENERAL };
 
 
 typedef struct module Module;
@@ -63,19 +63,27 @@ struct modulelist
   Module* First;
   Module* Last;
   int Length;
-  
+ 
+  char* FunctionList; 
 };
+
+
 
 Module* Module_Init( char* Name, char* Description );
 int Module_SetPythonModule( Module* Self, PythonModule* PyMod );
 int Module_SetCModule( Module* Self, CModule* CMod );
+int Module_SetGeneralModule( Module* Self );
 int Module_LoadFunctions( Module* Self, char* Path );
 char* Module_CallFunction( Module* Self, char* Function, char* Parameter );
 int Module_Destroy( Module* Self );
 
 
 ModuleList* ModuleList_Init( );
-Module* ModuleList_GetModuleByName( ModuleList* Self, char* ModuleName );
+Module* ModuleList_GetModule( ModuleList* Self, char* ModuleName );
+int ModuleList_GenerateList( ModuleList* Self );
+// You dont have to provide a Modulename if you got a func name like 'Mod.Func'
+ModFunction* ModuleList_GetFunction( ModuleList* Self, char* ModName, char* FuncName );
+ModFunction* ModuleList_GetFunctionFromCallstring( ModuleList* Self, char* Callstring );
 int ModuleList_AddAllFromDir( ModuleList* Self, char* Path );
 int ModuleList_AddFromPath( ModuleList* Self, char* Path );
 int ModuleList_Add( ModuleList* Self, Module* Mod );
@@ -83,4 +91,8 @@ int ModuleList_RegisterAll( ModuleList* Self, TcpCliServer* Server );
 char* ModuleList_CallFunction( ModuleList* Self, char* Callstring );
 int ModuleList_Destroy( ModuleList* Self );
 
+char* GeneralCallback( char* Callstring, int Socket, void* Parameter );
+char* HelpFunction( ModuleList* ModList, ModFunction* Func,  char* Parameter );
+char* ListFunctionsFunction( char* Callstring, int Socket, void* Parameter );
+char* ConnectFunction( char* Callstring, int Socket, void* Parameter );
 #endif

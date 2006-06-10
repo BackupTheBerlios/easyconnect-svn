@@ -55,7 +55,7 @@ ModFunctionList* ModFunctionList_Init( );
 
 int ModFunctionList_AddFunction( ModFunctionList* Self,  ModFunction* Func );
 
-ModFunction* ModFunctionList_GetElementByName( ModFunctionList* Self, char* FunctionName );
+ModFunction* ModFunctionList_GetFunction( ModFunctionList* Self, char* FunctionName );
 
 int ModFunctionList_Destroy( ModFunctionList* Self );
 

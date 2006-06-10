@@ -48,6 +48,17 @@ GeneralCfg* GeneralCfg_Init( char* GeneralCfgFile )
   // Reading values from ini file
   Self->Ip = strdup( iniparser_getsecstring( Dict, NULL, "ip", "127.0.0.1" ) );
   Self->Error = strdup( iniparser_getsecstring( Dict, NULL, "default_error", "Command not found.\n" ));
+  char* Newline = strstr(Self->Error, "\\n");
+  while( Newline != NULL )
+  {
+    if( *( Newline-1 ) != '\\' )
+    {
+      *Newline = ' '; 
+      *(Newline+1) = '\n';
+    }
+    Newline = strstr(Self->Error, "\\n");
+  }
+ 
   Self->RawPort = iniparser_getint( Dict, "raw_port", 9090 );
   Self->CliPort = iniparser_getint( Dict, "cli_port", 9099 );
   Self->RawEnable = iniparser_getint( Dict, "raw_enable",1 );
@@ -66,10 +77,21 @@ int GeneralCfg_Destroy( GeneralCfg* Self )
 char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath )
 {
   char* ret = NULL;
+  char* Newline;
   dictionary* Dict = iniparser_load( DeviceCfgPath );
   ret = iniparser_getsecstring( Dict, NULL, FieldName, NULL );
   if( ret != NULL )
   {
+    Newline = strstr(ret, "\\n");
+    while( Newline != NULL )
+    {
+      if( *( Newline-1 ) != '\\' )
+      {
+	*Newline = ' '; 
+	*(Newline+1) = '\n';
+      }
+      Newline = strstr(ret, "\\n");
+    }
     ret = strdup( ret );
   }
   iniparser_freedict(Dict);
@@ -130,12 +152,25 @@ char* DeviceFunctionCfg_GetField( int FunctionNumber, char* FieldName, char* Dev
 {
   char* ret = NULL;
   char* Section = NULL;
+  char* Newline;
   dictionary* Dict = iniparser_load( DeviceCfgPath );
   Section = iniparser_getsecname( Dict, FunctionNumber );  
   ret = iniparser_getsecstring( Dict, Section, FieldName, NULL ) ;
   if( ret != NULL )
-    ret = strdup(ret);
-
+  {
+    Newline = strstr(ret, "\\n");
+    while( Newline != NULL )
+    {
+      if( *( Newline-1 ) != '\\' )
+      {
+	*Newline = ' '; 
+	*(Newline+1) = '\n';
+      }
+      Newline = strstr(ret, "\\n");
+    }
+    ret = strdup( ret );
+  }
+ 
   iniparser_freedict( Dict );
   return ret; 
 

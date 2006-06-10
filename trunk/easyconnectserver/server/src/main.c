@@ -34,20 +34,35 @@ void sigfunc(int sig)
   exit (EXIT_FAILURE);
 }
 
+char* DoNothing( char* Callstring, int Socket, void* Param )
+{
+  return NULL;
+}
+
 int main( int argv, char** argc )
 {
+  char* Ignore[] = {"\004"};
+  int size = 1;
+  int i;
   signal(SIGINT, sigfunc);
   GeneralCfg* Tmp = GeneralCfg_Init( "../../config/easyconnect.conf" );
   //Function* Func = Function_Init( "../config/functions.cfg", "help" );
   
   ModuleList* List = ModuleList_Init();
+  // Add General functions
+  ModuleList_AddFromPath( List, "../../config/ecfunc.conf" );
 
   ModuleList_AddFromPath( List, "../../config/devices/cpu-watcher.conf" );
   ModuleList_AddFromPath( List, "../../config/devices/storage.conf" );
-  //  ModuleList_AddFromPath( List, "../../config/devices/vscope.conf" );
+  //ModuleList_AddFromPath( List, "../../config/devices/vscope.conf" );
   
   TcpCliServer* New = TcpCliServer_Init();
   TcpCliServer_SetDefaultError( New, Tmp->Error ); 
+  for( i = 0; i < size; i++ )
+  {
+    TcpCliServer_RegisterFunction( New, Ignore[i], DoNothing, NULL ); 
+  }
+
   
   ModuleList_RegisterAll( List, New );
   //RegisterFunctions( New, "../config/functions.cfg" );
