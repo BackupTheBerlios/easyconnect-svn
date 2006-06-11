@@ -54,7 +54,7 @@ int main( int argv, char** argc )
 
   ModuleList_AddFromPath( List, "../../config/devices/cpu-watcher.conf" );
   ModuleList_AddFromPath( List, "../../config/devices/storage.conf" );
-  //ModuleList_AddFromPath( List, "../../config/devices/vscope.conf" );
+  ModuleList_AddFromPath( List, "../../config/devices/vscope.conf" );
   
   TcpCliServer* New = TcpCliServer_Init();
   TcpCliServer_SetDefaultError( New, Tmp->Error ); 

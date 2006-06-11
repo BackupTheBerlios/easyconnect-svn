@@ -148,6 +148,8 @@ PyObject* PythonModule_InstatiateClass( PythonModule* Self, char* Name, char* Pa
 
 int PythonModule_ImportFunctions( PythonModule* Self, char* Parameter)
 {
+  if( Self == NULL )
+    return -1;
   PyObject* pFunc;
   PyObject* Ret;
   PyObject* RetString;

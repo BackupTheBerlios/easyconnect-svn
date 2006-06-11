@@ -47,7 +47,7 @@ CModule* CModule_Init( char* LibFilePath, char* Name, char* InitString );
 
 char* CModule_Communicate( CModule* Self, int argc, char** argv );
 
-char* CModule_ExecuteFunction( CModule* Self, char* Callstring );
+char* CModule_ExecuteFunction( CModule* Self, char* Function, char* Parameter );
 
 char* CModule_Callback( char* Callstring, int Socket, void* Parameter );
 

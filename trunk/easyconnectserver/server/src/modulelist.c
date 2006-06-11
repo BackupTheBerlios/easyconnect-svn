@@ -111,6 +111,26 @@ int Module_LoadFunctions( Module* Self, char* Path )
   return Length;
 }
 
+char* Module_ExecuteFunction( Module* Self, char* Function, char* Parameter )
+{
+  if( Self == NULL ||  Function == NULL ) 
+    return NULL;
+  
+  switch( Self->Type )
+  {
+    case MT_C:
+      CModule_ExecuteFunction( Self->CMod, Function, Parameter ); 
+      break;
+
+    case MT_PYTHON:
+      PythonModule_ExecuteFunction( Self->PyMod , Function, Parameter );
+      break;
+    default:
+      break;
+  }
+  
+}
+
 
 int Module_Destroy( Module* Self )
 {
@@ -141,11 +161,6 @@ int Module_Destroy( Module* Self )
   free( Self );
   return 0; 
 }
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////
 // 
@@ -184,6 +199,32 @@ Module* ModuleList_GetModule( ModuleList* Self, char* ModuleName )
   }
   return NULL;
 }
+
+Module* ModuleList_GetModuleFromCallstring( ModuleList* Self, char* Callstring )
+{
+  if( Self == NULL )
+    return NULL;
+  
+  Module* Mod;
+  int Length = 0;
+  char* Tmp;
+  char* ModName;
+  char* Call = Callstring;
+
+  Tmp = strchr(Call, '.');
+  if( Tmp == NULL )
+    return NULL;
+  Length = strlen(Call)-strlen(Tmp);
+  ModName = (char*)malloc( sizeof(char) * (Length+1));
+  strncpy( ModName, Call, Length );
+  ModName[Length] = '\0';
+  
+  Mod = ModuleList_GetModule( Self, ModName );
+  if( Length != 0 )
+    free( ModName );
+  return Mod;
+}
+
 
 ModFunction* ModuleList_GetFunction( ModuleList* Self, char* ModName, char* FuncName )
 {
@@ -291,7 +332,7 @@ int ModuleList_AddFromPath( ModuleList* Self, char* Path )
       length = strlen( LibPath ) - strlen( Tmp ) ;
       FullPath = malloc( sizeof(char) * (length+1));
       strncpy( FullPath, LibPath, length );
-      FullPath[length];
+      FullPath[length] = '\0';
 
       ModName = strstr( Tmp, ".py" );
       length = strlen( Tmp ) - strlen( ModName );
@@ -376,7 +417,6 @@ int ModuleList_RegisterAll( ModuleList* Self, TcpCliServer* Server )
 	  break;
 	case MT_GENERAL:
 	  TcpCliServer_RegisterFunction( Server, TmpFunc->Name, GeneralCallback , Self ); 
-	  
 	default:
 	  break;
       }	  
@@ -428,7 +468,7 @@ char* GeneralCallback( char* Callstring, int Socket, void* Parameter )
   else
   {
     End = Argument;
-    Argument++;
+    for( ; *Argument == ' '; Argument++ );
   }
   char* FuncName = (char*) malloc( sizeof(char) * (strlen(Callstring)-strlen(End)+1) );
   strncpy( FuncName, Callstring, strlen(Callstring)-strlen(End) );
@@ -436,10 +476,20 @@ char* GeneralCallback( char* Callstring, int Socket, void* Parameter )
   FuncArg = ModuleList_GetFunction( ModList, "general", FuncName ); 
   if( strcmp( FuncName, "Help" ) == 0)
   {
-    ret = HelpFunction( ModList, FuncArg, Argument );
+    if( Argument == NULL || strlen(Argument) == 0 )
+      ret = strdup(FuncArg->Help);
+    else
+    {
+      ret = ModuleList_GetHelpString( ModList, Argument );
+      if( ret == NULL )
+	ret = FuncArg->Error;
+    }
   }else if( strcmp( FuncName, "ListFunctions" ) == 0)
   {
     ret = strdup(ModList->FunctionList);
+  }else if( strcmp( FuncName, "Connect" ) == 0 )
+  {
+    ret = ConnectFunction( ModList, Argument );
   }
   
   free(FuncName); 
@@ -448,37 +498,57 @@ char* GeneralCallback( char* Callstring, int Socket, void* Parameter )
 }
 
 
-char* HelpFunction( ModuleList* ModList, ModFunction* Func,  char* Parameter )
+char* ModuleList_GetHelpString( ModuleList* Self, char* Parameter )
 {
+  if( Parameter == NULL || strlen( Parameter ) == 0 )
+    return NULL;
+
   char* ret;
   char* End;
   int j = 0;
   ModFunction* ArgFunc;
 
-  // TODO: Search for the first non blank string not for the first blank
-  if( Parameter != NULL && strlen(Parameter) != 0 )
-  {
-    char* End = Parameter + strlen(Parameter);
-    for( j = 0; Parameter+j < End && Parameter[j] == ' '; j++ );
-        Parameter = Parameter + j;
-    if( Parameter != End )
-    {     
-	
-      ArgFunc = ModuleList_GetFunction( ModList, NULL, Parameter );  
-      if( ArgFunc == NULL )
-      {
-	return strdup(Func->Error);
-      }
-      ret = strdup(ArgFunc->Help);
-      return ret;
-    }  
-  }
-  ret = strdup(Func->Help);
+  End = Parameter + strlen(Parameter);
+  ArgFunc = ModuleList_GetFunction( Self, NULL, Parameter );  
+  if( ArgFunc != NULL )
+    return strdup(ArgFunc->Help);
+  else
+    return NULL;
+}
+
+char* ModuleList_CallFunction( ModuleList* Self, char* Callstring )
+{
+  int length;
+  char* ret;
+  char* ModStringEnd = strchr( Callstring, '.' );
+  if( ModStringEnd == NULL )
+    return NULL;
+  length = strlen(Callstring)-strlen(ModStringEnd); 
+  char* ModString = (char*) malloc( sizeof(char) * (length +1 ));
+  strncpy( ModString, Callstring, length );
+  ModString[length] = '\0'; 
+
+  Module* TmpMod = ModuleList_GetModule( Self, ModString );
+  
+  Callstring = ModStringEnd + 1;
+  char* FunctionEnd = strchr( Callstring, ' ' );
+  if( FunctionEnd == NULL )
+    FunctionEnd = Callstring + strlen( Callstring);
+  length = strlen(Callstring)-strlen(FunctionEnd);
+  char* Function = (char*) malloc( sizeof(char) * (length+1));
+  strncpy( Function, Callstring, length );
+  Function[length] = '\0';
+  for(;*FunctionEnd != '\0' && *FunctionEnd == ' '; FunctionEnd++);
+  ret = Module_ExecuteFunction( TmpMod , Function, FunctionEnd);
+
+  free( ModString );
+  free( Function );  
+  
   return ret;
 }
 
 
-int ModuleList_GenerateList( ModuleList* Self )
+int ModuleList_GenerateList( ModuleList* Self)
 {
   int i, j, length = 0;
   char* List;
@@ -524,38 +594,30 @@ int ModuleList_GenerateList( ModuleList* Self )
 }
 
  
-/*
-char* ConnectFunction( char* Callstring, int Socket, void* Func )
+
+char* ConnectFunction( ModuleList* Self, char* Argument )
 {
-  Function* Tmp = (Function*) Func;
-  Function* ToCall;
-  FunctionList* List = (FunctionList*) Tmp->Argument;
-  
-  
   // Split the callstring
   //printf("%s\n", Callstring); 
 
   int Length;
   int retLength;
-  char* Argument;
   char* ArgEnd;
   char* ArgString;
   char* FuncName;
   char* FuncNameEnd;
   char* ret = NULL;
    
-  Argument = strchr( Callstring, ' ' );
   if( Argument == NULL )
   {
-    return Tmp->Error;
+    return NULL;
   }
-  for( ; *Argument == ' '; Argument++ );
 
   //printf("%s\n", Argument); 
   ArgEnd = strchr( Argument, '>' );
   if( ArgEnd == NULL )
   {
-    return Tmp->Error;
+    return NULL;
   }
 
   while( Argument != NULL )
@@ -587,15 +649,8 @@ char* ConnectFunction( char* Callstring, int Socket, void* Func )
       FuncName = ArgString;
     }
    
-    Function* ToCall = FunctionList_GetElementByName( List, FuncName  );
-    free( FuncName );
-    if( ToCall == NULL || ToCall->Dev == NULL )
-    {
-      ret = NULL;
-      break;
-    }
-    ret = CallFunction( ArgString, ToCall->Dev ); 
-    printf( "%s return: %s\n", ArgString, ret );
+    ret = ModuleList_CallFunction( Self, ArgString ); 
+    //printf( "%s return: %s\n", ArgString, ret );
     free( ArgString );
     if( *ArgEnd != '\0' )
     {
@@ -615,5 +670,5 @@ char* ConnectFunction( char* Callstring, int Socket, void* Func )
   }
   return ret; 
 }
-*/
+
 

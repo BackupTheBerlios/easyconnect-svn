@@ -81,20 +81,14 @@ char* CModule_Communicate( CModule* Self, int argc, char** argv )
   return Self->Communicate( Self->Handle, argc, argv );
 }
 
-char* CModule_ExecuteFunction( CModule* Self, char* Callstring )
+char* CModule_ExecuteFunction( CModule* Self, char* Function, char* Parameter )
 {
-  char* Argument = strchr( Callstring, '.' );
-  Argument++;
-  //printf( "Argument: %s\n",Argument );
-
   // Count the arguments
   int NumberofArgs = 1;
-  char* Tmp = strchr( Argument, ' ' );
-  while( Tmp != NULL )
+  char* Tmp = Parameter;
+  while( Tmp != NULL && *Tmp != '\0' )
   {
     Tmp++;
-    if( *Tmp == '\0' )
-      break;
     if( *Tmp == ' ' )
       continue;
 
@@ -105,19 +99,18 @@ char* CModule_ExecuteFunction( CModule* Self, char* Callstring )
   char** argv = (char**) malloc( sizeof( char*) * NumberofArgs );
   int argc = NumberofArgs;
   
-  char* Begin = Argument;
-  char* End = Argument+ strlen(Argument);
+  argv[0] = strdup(Function);
+  char* Begin = Parameter;
+  char* End = Parameter+ strlen(Parameter);
   int i = 0;
   int j = 0;
   int Length = 0;
   Tmp = Begin;
-  for( i = 0; i < NumberofArgs; i++ )
+  for( i = 1; i < NumberofArgs; i++ )
   {
     for(j = 0; Tmp+j < End && Tmp[j] != ' '; j++ );
     Tmp = Tmp + j;
     
-    //printf("Begin: %s, Tmp: %s, End: %s\n", Begin, Tmp, End );
-
     Length = strlen( Begin ) - strlen( Tmp );
     argv[i] = (char*) malloc( sizeof( char) * ( Length +1 ) );
     strncpy( argv[i], Begin, Length );
@@ -127,22 +120,9 @@ char* CModule_ExecuteFunction( CModule* Self, char* Callstring )
     Tmp = Tmp + j;
     Begin = Tmp;
   }
-   
-  //for( j = 0; j < NumberofArgs; j++ )
-  //  printf("Arg %i: %s\n", j, argv[j] );
   
-  //printf("\n");
   char* Ret = Self->Communicate( Self->Handle, argc, argv );  
-  
-  /*
-  if( Ret != NULL )
-  {
-    Ret = (char*) realloc( Ret,strlen(Ret)+3 );
-    Ret[strlen(Ret)] = '\n';
-    Ret[strlen(Ret)+1] = '\n';
-    Ret[strlen(Ret)+2] = '\0';
-  }
-  */
+
 
   if( argv != NULL )
   {
@@ -163,7 +143,17 @@ char* CModule_ExecuteFunction( CModule* Self, char* Callstring )
 char* CModule_Callback( char* Callstring, int Socket, void* Parameter )
 {
   CModule* Self = (CModule*) Parameter;
-  return CModule_ExecuteFunction( Self, Callstring ); 
+  Callstring = strchr( Callstring, '.' ) +1;
+		  
+  char* FunctionEnd = strchr( Callstring, ' ' );
+  if( FunctionEnd == NULL )
+    FunctionEnd = Callstring + strlen( Callstring);
+  int length = strlen(Callstring)-strlen(FunctionEnd);
+  char* Function = (char*) malloc( sizeof(char) * (length+1)); 
+  strncpy( Function, Callstring, length );
+  Function[length] = '\0';  
+  for(;*FunctionEnd != '\0' && *FunctionEnd == ' '; FunctionEnd++);
+  return CModule_ExecuteFunction( Self, Function, FunctionEnd); 
 }
 
 int CModule_Destroy( CModule* Self )

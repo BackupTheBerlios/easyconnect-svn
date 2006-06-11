@@ -5,7 +5,7 @@ def ToBin(x, count=8):
         Integer to binary
         Count is number of bits
         """
-        return "b"+"".join(map(lambda y:str((x>>y)&1), range(count-1, -1, -1)))
+        return "".join(map(lambda y:str((x>>y)&1), range(count-1, -1, -1)))
 
 class VCDStorage:
   def __init__(self, Filepath = None, Name = None, Timescale="1ns" ):
@@ -99,7 +99,7 @@ class VCDStorage:
     self.File.close()
 
 if __name__ == "__main__":
-  st = VCDStorage( "Save.txt", "Logik"  )
+  st = VCDStorage( "Save.txt", "Logik",   )
   st.AddReg( "Bit0", 1 )
   st.AddReg( "Bit1", 1 )
   st.AddReg( "Bit2", 1 )
@@ -119,10 +119,10 @@ if __name__ == "__main__":
 		     "Bit6": 0, 
 		     "Bit7": 0,
 		     "Output": ToBin(0) }, 0 )
-  st.AddValues( [{"Bit0": 1, "Output":ToBin(100)}, 
-		 {"Bit0":0, "Output":ToBin(55)},
-		 {"Bit0":1, "Output":ToBin(10) },
+  st.AddValues( [{"Bit0": 1, "Output":"b"+ToBin(100)}, 
+		 {"Bit0":0, "Output":"b"+ToBin(55)},
+		 {"Bit0":1, "Output":"b"+ToBin(10) },
 		 {"Bit0":0 },
-		 {"Bit0":1, "Output":ToBin(180) }])
+		 {"Bit0":1, "Output":"b"+ToBin(180) }])
 
  

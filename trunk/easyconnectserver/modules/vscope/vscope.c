@@ -6,6 +6,7 @@
 #include <usb.h>
 #include "vscopedevice.h" 
 #include "tqueue.h"
+#include "base64.h"
 
 
 void *EndlessDataCollection(void* DeviceHandle);
@@ -67,7 +68,7 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
     int k;
     for(k=0;k<20000;k++)
       test[k]=(char)k;
-    return strdup(test);
+    return encode_b64(test, 20000);
     //return 
   }
 }

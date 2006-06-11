@@ -74,7 +74,7 @@ int Module_SetPythonModule( Module* Self, PythonModule* PyMod );
 int Module_SetCModule( Module* Self, CModule* CMod );
 int Module_SetGeneralModule( Module* Self );
 int Module_LoadFunctions( Module* Self, char* Path );
-char* Module_CallFunction( Module* Self, char* Function, char* Parameter );
+char* Module_ExecuteFunction( Module* Self, char* Function, char* Parameter );
 int Module_Destroy( Module* Self );
 
 
@@ -92,7 +92,6 @@ char* ModuleList_CallFunction( ModuleList* Self, char* Callstring );
 int ModuleList_Destroy( ModuleList* Self );
 
 char* GeneralCallback( char* Callstring, int Socket, void* Parameter );
-char* HelpFunction( ModuleList* ModList, ModFunction* Func,  char* Parameter );
-char* ListFunctionsFunction( char* Callstring, int Socket, void* Parameter );
-char* ConnectFunction( char* Callstring, int Socket, void* Parameter );
+char* ModuleList_GetHelpString( ModuleList* Self, char* Parameter );
+char* ConnectFunction( ModuleList* Self, char* Argument );
 #endif
