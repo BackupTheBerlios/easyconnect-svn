@@ -17,6 +17,7 @@ struct devicestate
   TQueue    *data;
   pthread_t thread;
   int	    thread_id;
+  pthread_mutex_t mut;
 };
 
 /* Init Function:
@@ -30,6 +31,7 @@ void* Init( char* InitString )
 
   New->vscope = openVScope();
   New->data = TQueue_Init();
+  pthread_mutex_init (&New->mut,NULL);
 
   return (void*) New;
 }
@@ -50,13 +52,20 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   if( strcmp( argv[0], "start" ) == 0 )
   {
      SetVScopeMode(Tmp->vscope,MODE_COUNTER);
-     StartVScope(Tmp->vscope);
      Tmp->thread_id = pthread_create(&Tmp->thread, NULL, EndlessDataCollection, (void*)Tmp);
   }
   if( strcmp( argv[0], "stop" ) == 0 )
   {
+     pthread_mutex_lock(&Tmp->mut);
      StopVScope(Tmp->vscope);
      pthread_cancel(Tmp->thread_id);
+     pthread_mutex_unlock(&Tmp->mut);
+  }
+  if( strcmp( argv[0], "data" ) == 0 )
+  {
+    char test[4] = {0x12,0x14,0x02,0x04};
+    return strdup(test);
+    //return 
   }
 }
 
@@ -77,11 +86,18 @@ void *EndlessDataCollection(void* DeviceHandle)
 {
   char buffer[20000]; 
   DeviceState* Tmp = (DeviceState*) DeviceHandle;
+  StartVScope(Tmp->vscope);
   while(1)
   {
     //sleep(1)
     //printf("thread running\n");
+    pthread_mutex_lock(&Tmp->mut);
     readVScopeData(Tmp->vscope, buffer, 20000);
+    pthread_mutex_unlock(&Tmp->mut);
     //TQueue_AddElement(Tmp->data,strdup(buffer));
   }
 }
+
+
+
+
