@@ -63,7 +63,10 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   }
   if( strcmp( argv[0], "data" ) == 0 )
   {
-    char test[4] = {0x12,0x14,0x02,0x04};
+    char test[20000];
+    int k;
+    for(k=0;k<20000;k++)
+      test[k]=(char)k;
     return strdup(test);
     //return 
   }
@@ -85,6 +88,7 @@ int Destroy( void* DeviceHandle )
 void *EndlessDataCollection(void* DeviceHandle)
 {
   char buffer[20000]; 
+  int len;
   DeviceState* Tmp = (DeviceState*) DeviceHandle;
   StartVScope(Tmp->vscope);
   while(1)
@@ -92,9 +96,10 @@ void *EndlessDataCollection(void* DeviceHandle)
     //sleep(1)
     //printf("thread running\n");
     pthread_mutex_lock(&Tmp->mut);
-    readVScopeData(Tmp->vscope, buffer, 20000);
+    len = readVScopeData(Tmp->vscope, buffer, 20000);
     pthread_mutex_unlock(&Tmp->mut);
-    //TQueue_AddElement(Tmp->data,strdup(buffer));
+    if(len>0)
+      TQueue_AddElement(Tmp->data,strdup(buffer));
   }
 }
 
