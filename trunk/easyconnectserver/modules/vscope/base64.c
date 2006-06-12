@@ -15,7 +15,7 @@ unsigned char* encode_b64( unsigned char* in, int len )
   int loops = len/3+len%3;
   unsigned char* out = (unsigned char*)malloc(sizeof(unsigned char)*(loops*4));
   int i,j;
-  for(i=0;i<loops;i++)
+  for(i=0;i<loops-1;i++)
   {
     if(len-i*3>=3)
     {

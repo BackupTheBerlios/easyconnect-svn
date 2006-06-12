@@ -1,6 +1,7 @@
 from vcd import *
 import base64 
 from struct import *
+
 class module:
   def __init__( self, string=None ):
     self.List = {}
@@ -14,17 +15,19 @@ class module:
     if str[0] == 'vcd':
       return self.CreateVCD(str[1:])
     return "No filetype given.\n"
-     
-  def store( self, string=None ):
+  
+  def store( self, string=None):
     if( string == None ):
       return "No Param"
     str = string.split(' ')   
     Tmp = self.List[int(str[0])]
     #print Tmp
-    
+    print "before decode" 
+    DecString = base64.b64decode(str[1]) 
+    print "after decode"
     #print unpack(len(str[1])*'b', str[1]) 
     if Tmp[0] == 'vcd':
-      self.StoreVCD(base64.b64decode(str[1]), Tmp[1], Tmp[2] )
+      self.StoreVCD(DecString, Tmp[1], Tmp[2] )
     
     return "\n"       
 
@@ -70,11 +73,15 @@ class module:
     return str(id)+'\n' 
 
   def StoreVCD(self, ParamList, Storage, ValList):
+    print "before unpack"
     Parameters= unpack(len(ParamList)*'b', ParamList) 
+    print "after unpack"
     Data = []
     Dict = {}   
-
+   
+     
     #TODO: Rewrite that more than binary is possible 
+    """
     for val in Parameters:
       bin = reversed(ToBin(val,8))
       j=0
@@ -84,7 +91,9 @@ class module:
 	#print Dict
       Data.append(Dict)
       Dict={}
-    Storage.AddValues( Data )
+    """
+    Storage.AddValStringAs8Bit( Parameters )
+    print 'after storage'
     return
 
 def __introspection__():

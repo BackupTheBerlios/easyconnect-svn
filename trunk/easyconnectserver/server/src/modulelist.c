@@ -648,9 +648,10 @@ char* ConnectFunction( ModuleList* Self, char* Argument )
     {
       FuncName = ArgString;
     }
-   
+    printf("Function: %s\n",FuncName);
+	   
     ret = ModuleList_CallFunction( Self, ArgString ); 
-    //printf( "%s return: %s\n", ArgString, ret );
+   // printf( "%s\n", ArgString  );
     free( ArgString );
     if( *ArgEnd != '\0' )
     {
