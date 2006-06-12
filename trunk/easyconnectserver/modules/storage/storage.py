@@ -1,7 +1,6 @@
 from vcd import *
 import base64 
 from struct import *
-import profile
 
 class module:
   def __init__( self, string=None ):
