@@ -82,6 +82,7 @@ char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath )
   ret = iniparser_getsecstring( Dict, NULL, FieldName, NULL );
   if( ret != NULL )
   {
+    ret = strdup( ret );
     Newline = strstr(ret, "\\n");
     while( Newline != NULL )
     {
@@ -92,7 +93,6 @@ char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath )
       }
       Newline = strstr(ret, "\\n");
     }
-    ret = strdup( ret );
   }
   iniparser_freedict(Dict);
   return ret;

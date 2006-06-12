@@ -33,8 +33,7 @@ NetData* NetData_Init( char* Data, int Socket, int Type )
   Self->Socket = Socket;
   Self->Type = Type;
 
-  Self->Data = (char*) malloc( sizeof( char ) * ( strlen( Data ) + 1) ) ;
-  strcpy( Self->Data, Data );
+  Self->Data = strdup( Data );
 
   return Self;
 }

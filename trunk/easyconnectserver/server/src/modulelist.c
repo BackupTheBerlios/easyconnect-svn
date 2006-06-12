@@ -288,14 +288,17 @@ int ModuleList_AddFromPath( ModuleList* Self, char* Path )
     return -1;
   }
 
-  char* ModName = DeviceCfg_GetName( Path );
+  char* ModName = NULL;
+  ModName = DeviceCfg_GetName( Path );
   char* ModDesc = DeviceCfg_GetDescription( Path );
   Module* New = Module_Init( ModName, ModDesc );
 
-  char* LibPath = DeviceCfg_GetLibPath( Path );
-  char* InitString = DeviceCfg_GetInitString( Path );
-  char* LibType = DeviceCfg_GetLibType( Path );
-
+  char* LibPath = NULL;
+  LibPath = DeviceCfg_GetLibPath( Path );
+  char* InitString = NULL;
+  InitString = DeviceCfg_GetInitString( Path );
+  char* LibType = NULL;
+  LibType = DeviceCfg_GetLibType( Path );
    
   if( strcmp( LibType, "c" ) == 0 )
   {
@@ -342,7 +345,9 @@ int ModuleList_AddFromPath( ModuleList* Self, char* Path )
       //ModName = strndup( Tmp, strlen( Tmp ) - strlen( ModName ) );		      
     }	      
     PythonEnv_AddPath( Self->PyEnv, FullPath );
+    free( FullPath );
     Module_SetPythonModule( New, PythonModule_Init( Self->PyEnv, ModName ));
+    free( ModName );
     PythonModule_ImportFunctions( New->PyMod, InitString);
   }else if( strcmp( LibType, "general" ) == 0 ) 
   {
@@ -602,10 +607,10 @@ char* ConnectFunction( ModuleList* Self, char* Argument )
 
   int Length;
   int retLength;
-  char* ArgEnd;
-  char* ArgString;
-  char* FuncName;
-  char* FuncNameEnd;
+  char* ArgEnd = NULL;
+  char* ArgString = NULL;
+  char* FuncName = NULL;
+  char* FuncNameEnd = NULL;
   char* ret = NULL;
    
   if( Argument == NULL )
@@ -636,22 +641,11 @@ char* ConnectFunction( ModuleList* Self, char* Argument )
     {
       strcat( ArgString, ret );
     }
-
-    FuncNameEnd = strchr( ArgString, ' ' );
-    if( FuncNameEnd != NULL )
-    {
-      Length = strlen( ArgString ) - strlen( FuncNameEnd );
-      FuncName = malloc( sizeof(char) * ( Length + 1 ));  
-      strncpy( FuncName , ArgString, Length );
-      FuncName[Length] = '\0';
-    } else
-    {
-      FuncName = ArgString;
-    }
     //printf("Function: %s\nArgument: %s\n",FuncName, ArgString);
 	   
     ret = ModuleList_CallFunction( Self, ArgString ); 
     //printf( "%s\n", ArgString  );
+    //printf( " %X \n", ret );
     free( ArgString );
     if( *ArgEnd != '\0' )
     {

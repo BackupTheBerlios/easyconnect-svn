@@ -45,6 +45,7 @@ int PythonEnv_AddPath( PythonEnv* Self, char* Path )
 		  
   sprintf( Command, "sys.path.append('%s')", Path );
   PyRun_SimpleString( Command );
+  free( Command );
   return 0;
 	
 }

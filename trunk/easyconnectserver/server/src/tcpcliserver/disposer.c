@@ -54,8 +54,7 @@ int Disposer_SetDefaultErrorMsg( Disposer* Self, char* ErrorMsg )
   {
     free( Self->ErrorMsg );
   }
-  Self->ErrorMsg = (char*) malloc( strlen( ErrorMsg ) * sizeof( char ));
-  strcpy( Self->ErrorMsg, ErrorMsg );
+  Self->ErrorMsg = strdup(ErrorMsg);
   return 0;
 }
 
@@ -127,14 +126,13 @@ char* GetCommand( char* String )
   if( Space != NULL )
   {
     Stringlength = strlen( String ) - strlen( Space );
-    Command = (char*) malloc( ( Stringlength  + 1 )  * sizeof( char ));
+    Command = (char*) malloc(  sizeof(char )+( Stringlength  + 1 ));
     strncpy( Command, String, Stringlength );
     Command[Stringlength] = '\0'; 
     return Command;
   }else 
   {
-    Command = (char*) malloc(  sizeof( char ) * ( strlen( String ) + 1 ) );
-    strcpy( Command, String );
+    Command = strdup( String );
     return Command;
   }
   return NULL;
