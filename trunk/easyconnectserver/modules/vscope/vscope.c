@@ -68,7 +68,7 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
     int k;
     for(k=0;k<20000;k++)
       test[k]=(char)k;
-    return encode_b64(test, 20000);
+    return (char*) encode_b64((unsigned char*)test, 20000);
     //return 
   }
 }

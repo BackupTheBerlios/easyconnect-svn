@@ -1,6 +1,7 @@
 from vcd import *
 import base64 
 from struct import *
+import profile
 
 class module:
   def __init__( self, string=None ):
@@ -22,9 +23,9 @@ class module:
     str = string.split(' ')   
     Tmp = self.List[int(str[0])]
     #print Tmp
-    print "before decode" 
+    #print "before decode" 
     DecString = base64.b64decode(str[1]) 
-    print "after decode"
+    #print "after decode"
     #print unpack(len(str[1])*'b', str[1]) 
     if Tmp[0] == 'vcd':
       self.StoreVCD(DecString, Tmp[1], Tmp[2] )
@@ -73,9 +74,10 @@ class module:
     return str(id)+'\n' 
 
   def StoreVCD(self, ParamList, Storage, ValList):
-    print "before unpack"
+    #print "before unpack"
     Parameters= unpack(len(ParamList)*'b', ParamList) 
-    print "after unpack"
+    #print "after unpack"
+    #print Parameters
     Data = []
     Dict = {}   
    
@@ -93,8 +95,8 @@ class module:
       Dict={}
     """
     Storage.AddValStringAs8Bit( Parameters )
-    print 'after storage'
-    return
+    #print 'after storage'
+    return '\n'
 
 def __introspection__():
   return ["module"] 

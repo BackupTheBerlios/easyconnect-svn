@@ -12,10 +12,10 @@ void encodeblock( unsigned char in[3], unsigned char out[4], int len )
 // Following code is written by Moritz Eberl (meberl@vscope.de)
 unsigned char* encode_b64( unsigned char* in, int len )
 {
-  int loops = len/3+len%3;
-  unsigned char* out = (unsigned char*)malloc(sizeof(unsigned char)*(loops*4));
+  int loops = len/3+len%3-1;
+  unsigned char* out = (unsigned char*)malloc(sizeof(unsigned char)*(loops*4+1));
   int i,j;
-  for(i=0;i<loops-1;i++)
+  for(i=0;i<loops;i++)
   {
     if(len-i*3>=3)
     {
@@ -24,8 +24,14 @@ unsigned char* encode_b64( unsigned char* in, int len )
     {
       j = len-i*3;
     }
-    encodeblock( in+i*3, out+4*i,j );
+    encodeblock( in+i*3, out+i*4,j );
   }
+  out[loops*4]='\0';
+  /*
+  for(i=0;i<=loops*4;i++)
+    printf(" %i ",out[i]);
+  printf("\n");
+  */
   return out;
 	
 }
