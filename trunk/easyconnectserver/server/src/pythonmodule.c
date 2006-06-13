@@ -238,7 +238,8 @@ char* PythonModule_Callback( char* Callstring, int Socket, void* Parameter )
   char* Tmp;
   int j;
   int length;
-
+  char* ret;
+  
   Argument = strchr( Callstring, '.' );
   Argument++;
  
@@ -264,8 +265,9 @@ char* PythonModule_Callback( char* Callstring, int Socket, void* Parameter )
     //printf("Function = %s\nArgument = %s\n",Function, Argument );
   }
 
-  return PythonModule_ExecuteFunction( Self, Function, Argument ); 
-
+  ret = PythonModule_ExecuteFunction( Self, Function, Argument ); 
+  free(Function);
+  return ret;
 }
 
 int PythonModule_Destroy( PythonModule* Self )

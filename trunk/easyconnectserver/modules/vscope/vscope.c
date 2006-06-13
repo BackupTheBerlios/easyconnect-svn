@@ -64,11 +64,11 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   }
   if( strcmp( argv[0], "data" ) == 0 )
   {
-    char test[20];
+    char test[20000];
     int k;
-    for(k=0;k<20;k++)
+    for(k=0;k<20000;k++)
       test[k]=(char)k;
-    return (char*) encode_b64((unsigned char*)test, 20);
+    return (char*) encode_b64((unsigned char*)test, 20000);
     //return 
   }
 }

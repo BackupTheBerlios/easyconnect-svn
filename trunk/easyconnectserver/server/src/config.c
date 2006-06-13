@@ -77,13 +77,14 @@ int GeneralCfg_Destroy( GeneralCfg* Self )
 char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath )
 {
   char* ret = NULL;
-  char* Newline;
+  char* RetStr = NULL;
+  char* Newline = NULL;
   dictionary* Dict = iniparser_load( DeviceCfgPath );
   ret = iniparser_getsecstring( Dict, NULL, FieldName, NULL );
   if( ret != NULL )
   {
-    ret = strdup( ret );
-    Newline = strstr(ret, "\\n");
+    RetStr = strdup( ret );
+    Newline = strstr(RetStr, "\\n");
     while( Newline != NULL )
     {
       if( *( Newline-1 ) != '\\' )
@@ -91,11 +92,11 @@ char* DeviceCfg_GetField( char* FieldName, char* DeviceCfgPath )
 	*Newline = ' '; 
 	*(Newline+1) = '\n';
       }
-      Newline = strstr(ret, "\\n");
+      Newline = strstr(RetStr, "\\n");
     }
   }
   iniparser_freedict(Dict);
-  return ret;
+  return RetStr;
 }
 
 char* DeviceCfg_GetName( char* DeviceCfgPath )

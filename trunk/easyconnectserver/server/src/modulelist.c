@@ -115,20 +115,21 @@ char* Module_ExecuteFunction( Module* Self, char* Function, char* Parameter )
 {
   if( Self == NULL ||  Function == NULL ) 
     return NULL;
+  char* ret = NULL;
   
   switch( Self->Type )
   {
     case MT_C:
-      CModule_ExecuteFunction( Self->CMod, Function, Parameter ); 
+      ret = CModule_ExecuteFunction( Self->CMod, Function, Parameter ); 
       break;
 
     case MT_PYTHON:
-      PythonModule_ExecuteFunction( Self->PyMod , Function, Parameter );
+      ret = PythonModule_ExecuteFunction( Self->PyMod , Function, Parameter );
       break;
     default:
       break;
   }
-  
+  return ret;
 }
 
 

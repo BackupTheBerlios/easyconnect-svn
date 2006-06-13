@@ -32,7 +32,7 @@ Disposer* Disposer_Init( TQueue* InQueue, Sender* Send )
   Self->InQueue = InQueue;
   Self->FuncList = NetFunctionList_Init();
   Self->ReqList = RequestList_Init( Send );
-  Self->CommandLine = Cl_Init();
+  //Self->CommandLine = Cl_Init();
   
 	  
   pthread_create( &Self->Thread, NULL, (void*) &Disposer_Thread, (void*) Self );

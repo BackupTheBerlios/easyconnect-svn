@@ -77,12 +77,17 @@ int Module_LoadFunctions( Module* Self, char* Path );
 char* Module_ExecuteFunction( Module* Self, char* Function, char* Parameter );
 int Module_Destroy( Module* Self );
 
-
+// returns new instance
 ModuleList* ModuleList_Init( );
+
+// returns reference
 Module* ModuleList_GetModule( ModuleList* Self, char* ModuleName );
 int ModuleList_GenerateList( ModuleList* Self );
+// returns reference
 // You dont have to provide a Modulename if you got a func name like 'Mod.Func'
 ModFunction* ModuleList_GetFunction( ModuleList* Self, char* ModName, char* FuncName );
+
+// returns reference
 ModFunction* ModuleList_GetFunctionFromCallstring( ModuleList* Self, char* Callstring );
 int ModuleList_AddAllFromDir( ModuleList* Self, char* Path );
 int ModuleList_AddFromPath( ModuleList* Self, char* Path );
