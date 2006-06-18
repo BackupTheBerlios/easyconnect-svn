@@ -5,19 +5,22 @@ import sys
 sys.path.append( "../../../easyconnectlibs/python/")
 from easyconnectlib import *
 from dropdown import *
+import vcd
 
 class scope:
-  def __init__( self, FilePath=None, Name="Test" ):
+  def __init__( self, Ip, Port ):
     if( FilePath == None ):
       return
-    self.Connection = easyConnect()
+    self.Connection = easyConnect(ip=Ip, port=Port)
 
-  def Store( self):
+  def SetTrigger(self, TriggerType, Pattern ):
+    return 
+  
+  def StartRecord( self, numval, interval, online ):
     return
 
-  def Close( self ):
-    return self.Connection.Call("storage.close "+str(self.id))
-
+  def GetOneValue( self ):
+    return
 
 class App:
 
@@ -31,7 +34,7 @@ class App:
 	# Value pattern section
 
 	self.patterngroup = LabelFrame(self.triggergroup, text="Value Pattern", padx=5, pady=5 )
-	self.patterngroup.grid(row=0,column=0 ,columnspan=2, padx=10, pady=10)
+	self.patterngroup.grid(row=0,column=0 ,columnspan=3, padx=10, pady=10)
 
 	label = Label( self.patterngroup, text="Channel")
 	label.grid(row=0, column=0)	
@@ -57,7 +60,7 @@ class App:
 	# Edge pattern section
 
 	self.edgegroup = LabelFrame(self.triggergroup,  text="Edge Pattern", padx=5, pady=5 )
-	self.edgegroup.grid(row=1,column=0 ,columnspan=2, padx=10, pady=10)
+	self.edgegroup.grid(row=1,column=0 ,columnspan=3, padx=10, pady=10)
 
 	label = Label( self.edgegroup, text="Channel")
 	label.grid(row=0, column=0)	
@@ -84,7 +87,7 @@ class App:
 	# condition section
 
 	self.conditiongroup = LabelFrame(self.triggergroup, text="Condition",  padx=5, pady=5 )
-	self.conditiongroup.grid(row=2,column=0, columnspan=2, padx=10, pady=10)
+	self.conditiongroup.grid(row=2,column=0, columnspan=3, padx=10, pady=10)
 	
 	label = Label( self.conditiongroup, text="Start Condition:")	
 	label.grid( row=0,column=0)
@@ -109,19 +112,24 @@ class App:
 	label = Label( self.conditiongroup, text="Number of Values:")	
 	label.grid( row=1,column=2)
 
-	self.numberofvalues= StringVar()
-	self.numberofvalues.set('1000')
-	entry = Entry( self.conditiongroup, textvariable=self.numberofvalues, bg='white', width=10)
-	entry.grid( row=2, column=2)
+	self.numval= StringVar()
+	self.numval.set('1000')
+	self.numvalentry = Entry( self.conditiongroup, textvariable=self.numval, bg='white', width=10)
+	self.numvalentry.grid( row=2, column=2)
 
-	label = Label( self.triggergroup, text="Intervall:")
+	label = Label( self.triggergroup, text="Interval:")
 	label.grid(row=3,column=0, sticky=E)
 	self.intervall = StringVar()
 	self.intervall.set("100ms")	
 	Drop = DropDown(self.triggergroup, self.intervall, ["100ms","10ms","1ms","100us","50us","10us","5us"]) 
 	Drop.grid( row=3,column=1, sticky=W)
 
-	Button(self.triggergroup, width=20, text="Start!").grid(row=4,column=0, columnspan=2, pady=10)
+	self.memory = IntVar()
+	self.memory.set(1)
+	Box=Checkbutton(self.triggergroup, variable=self.memory, text="Online", command=self.OnOffline).grid(row=3,column=2)
+
+
+	Button(self.triggergroup, width=20, text="Start!").grid(row=4,column=0, columnspan=3, pady=10)
 	
 
 	###########################
@@ -130,22 +138,38 @@ class App:
 	self.snapgroup = LabelFrame(master, text="Snapshot",  padx=5, pady=5 )
 	self.snapgroup.grid(row=0,column=1 ,padx=10, pady=10)
 	
-	self.snapnow = Button(self.snapgroup, text="Take Snapshot")
-	self.snapnow.grid(row=0,column=0)
+	snapnow = Button(self.snapgroup, text="Take Snapshot", width=20).grid(row=0,column=0, columnspan=2, pady=5)
+	Listbox(self.snapgroup, bg='White', width=35, height=21).grid(row=1,column=0, columnspan=2)
+	save = Button(self.snapgroup, text="Save").grid(row=2,column=0, pady=10)
+	delsnap = Button(self.snapgroup, text="Delete").grid(row=2,column=1)
 
 
 	#############################
 	# Target section
-
+	
+	
 	self.targetgroup = LabelFrame(master, text="File", padx=5, pady=5)
-	self.targetgroup.grid(row=1,column=0,columnspan=2 ,padx=10, pady=10)
-        self.target = Entry(self.targetgroup,width=60, bg='white')
-        self.target.grid(row=0,column=0)
-	self.targetbutton = Button(self.targetgroup, text='Select Directory')
+	self.targetgroup.grid(row=1,column=0,columnspan=2 )
+        self.target = StringVar()
+	self.target.set('./new.vcd')
+	Entry(self.targetgroup,width=60, bg='white', textvariable=self.target).grid(row=0,column=0)
+	self.targetbutton = Button(self.targetgroup, state=DISABLED, text='Select Directory')
 	self.targetbutton.grid(row=0,column=1)
 
-    def hi(self):
-      pass
+	self.servergroup = LabelFrame(master, text="Server", padx=5, pady=5)
+	self.servergroup.grid(row=2,column=0,columnspan=2,padx=5, pady=10)
+	Label(self.servergroup, text='IP:' ).grid(row=0,column=0)
+        self.ip = StringVar()
+	self.ip.set('127.0.0.1')
+	Entry(self.servergroup,width=20, textvariable=self.ip, bg='white').grid(row=0,column=1)
+	self.port = StringVar()
+	self.port.set('9090')
+	
+	Label(self.servergroup, text='Port:' ).grid(row=0,column=2)
+	Entry(self.servergroup,width=10, textvariable=self.port, bg='white').grid(row=0,column=3)
+	#self.serverbutton = Button(self.servergroup, text='Select Directory')
+	#self.serverbutton.grid(row=0,column=1)
+
 
 
     def GetPattern(self,CBList):
@@ -156,7 +180,14 @@ class App:
 	  j = '.'
 	vallist.append(j)
       return vallist
-     
+    
+    def OnOffline(self):
+      if self.memory.get() == 0:
+	self.numval.set('1000')
+	self.numvalentry.config(state=DISABLED)      
+      if self.memory.get() == 1:
+	self.numvalentry.config(state=NORMAL)      
+
     def PatternButton(self):
       pass
  
