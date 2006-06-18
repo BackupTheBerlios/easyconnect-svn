@@ -48,14 +48,10 @@ VScope* openVScope()
     }	
   }
 
-  if (tmp->vscope_handle==0)
-  {
-    printf("VScope Device Error! (check cable and permissions)\n");
-    return (0);
-  }
+  if (tmp->vscope_handle==0) return (0);
   else 
   {
-    printf("VScope Device Found!\n");
+    printf("found\n");
     usb_set_configuration(tmp->vscope_handle,1);
     usb_claim_interface(tmp->vscope_handle,0);
     usb_set_altinterface(tmp->vscope_handle,0);
@@ -80,15 +76,34 @@ int sendVScopeCommand(VScope* self,char *command)
 
 int readVScopeData(VScope* self, char* data, int length)
 {
-  int i;
-  i = usb_bulk_read(self->vscope_handle,0x83,data,length,100);	
-  //printf("%i\n",i);
-  return i;
+  int i,j,dataindex=0;
+  char tmp[length];
+  char command[2] = {CMD_GETDATA,2};
+
+  while(1) 
+  {
+    sendVScopeCommand(self,command);
+    i = usb_bulk_read(self->vscope_handle,0x83,tmp,length,100);	
+    for(j=0;((j<i) && (dataindex<length));j++)
+    {
+      data[dataindex]=tmp[j];
+      dataindex++;
+    }
+    if(dataindex >= (length-1))
+      break;
+  }
+  return dataindex;
 }
 
 int readVScopeResults(VScope* self,char *data)
 {
 	
+}
+
+void SetVScopeSampleRate(VScope* self,char samplerate)
+{
+  char command[3] = {CMD_SETSAMPLERATE,3,samplerate};
+  sendVScopeCommand(self,command);
 }
 
 
@@ -129,4 +144,47 @@ int GetVScopeFIFOLoad(VScope* self)
   sendVScopeCommand(self,command);
 }
 
+
+void Recording(VScope* self,char samplerate,int numbers,char* data)
+{
+  SetVScopeMode(self,MODE_LOGIC);
+  SetVScopeSampleRate(self,samplerate);
+  StartVScope(self);
+  readVScopeData(self, data, numbers);
+  StopVScope(self);
+}
+
+
+void RecordingInternal(VScope* self,char samplerate)
+{
+  SetVScopeMode(self,MODE_LOGICINTERN);
+  SetVScopeSampleRate(self,samplerate);
+  StartVScope(self);
+}
+
+void GetRecordInternal(VScope* self,char*data,int lengths)
+{
+  if(lengths>1000)
+    lengths=1000;
+  readVScopeData(self, data, lengths);
+}
+
+
+void ActivateEdgeTrigger(VScope* self,int channel,int value)
+{
+  char command[4] = {CMD_SETEDGETRIG,4,channel,value};
+  sendVScopeCommand(self,command);
+}
+
+void ActivatePatternTrigger(VScope* self,char pattern)
+{
+  char command[3] = {CMD_SETPATTRIG,3,pattern};
+  sendVScopeCommand(self,command);
+}
+
+void DeActivateTrigger(VScope* self)
+{
+  char command[2] = {CMD_DEACTIVTRIG,2};
+  sendVScopeCommand(self,command);
+}
 
