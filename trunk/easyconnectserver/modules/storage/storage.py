@@ -93,9 +93,7 @@ class module:
       Data.append(Dict)
       Dict={}
     """
-    Storage.AddValStringAs8Bit( Parameters )
-    #print 'after storage'
-    return '\n'
+    return str( Storage.AddValStringAs8Bit( Parameters ) )
 
 def __introspection__():
   return ["module"] 

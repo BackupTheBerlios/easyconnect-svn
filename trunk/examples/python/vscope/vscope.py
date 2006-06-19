@@ -14,9 +14,16 @@ class scope:
     self.Connection = easyConnect(ip=Ip, port=Port)
 
   def SetTrigger(self, TriggerType, Pattern ):
+    # Command is vscope.settrigger $TRIGGERTYPE $PATTERN
+    # possible for $TRIGGERTYPE: edge, pattern
     return 
   
   def StartRecord( self, numval, interval, online ):
+    # Command is vscope.start $DATACOUNT $INTERVALL $MODE
+    # Mode is either online or interal
+    return
+
+  def GetValues( self ):
     return
 
   def GetOneValue( self ):
