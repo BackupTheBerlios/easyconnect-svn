@@ -97,7 +97,7 @@ void RecordingInternal(VScope* self,char samplerate);
 void GetRecordInternal(VScope* self,char*data,int length);
 
 void ActivateEdgeTrigger(VScope* self,int channel,int value);
-void ActivatePatternTrigger(VScope* self,char pattern);
+void ActivatePatternTrigger(VScope* self,char pattern,char ignore);
 void DeActivateTrigger(VScope* self);
 
 
