@@ -94,9 +94,9 @@ class VCDStorage:
   def AddValStringAs8Bit( self, String ):
     keys = self.ValDict.keys()
     symbs = []
-    for key in keys:
-      symbs.append(self.ValDict[key])
-
+    for i in range(8) :
+      symbs.append('%c'%(33+i))
+      print i
     
     for i in range(len(String)):
       bin = ToBin(String[i],8)

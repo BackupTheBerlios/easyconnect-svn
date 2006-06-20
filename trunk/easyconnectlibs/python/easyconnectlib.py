@@ -8,13 +8,7 @@ class easyConnect(object):
     
   def Call( self, command ):
     self.s.send( command )
-    i = 1
-    while i:
-      j = self.s.recv( 1000 )
-      if strlen(j):
-	ret+=j
-      else:
-	i =0
+    ret = self.s.recv( 20000 )
 
     return ret  
 

@@ -8,6 +8,7 @@
 #include "tqueue.h"
 #include "base64.h"
 
+#define TEST
 enum 
 {
   INTERNAL, ONLINE
@@ -47,7 +48,9 @@ void* Init( char* InitString )
 {
   DeviceState* New = (DeviceState*) malloc( sizeof( DeviceState ) );
 
+  #ifndef TEST
   New->vscope = openVScope();
+  #endif
   New->data = TQueue_Init();
   pthread_mutex_init (&New->mut,NULL);
 
@@ -69,10 +72,11 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
   
   if( strcmp( argv[0], "start" ) == 0 )
   {
+    
     //if( Tmp->Running == 1)
     //  return strdup( "Still Running!" );
 
-    Tmp->Running = 1;
+    //Tmp->Running = 1;
     Tmp->DataCount = atoi(argv[1]);
     if( strcmp(argv[3], "online")==0 )
       Tmp->RecordMode = ONLINE;
@@ -95,25 +99,37 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
       Tmp->Interval = SAMPLERATE_100MS;
     
     Tmp->thread_id = pthread_create(&Tmp->thread, NULL, EndlessDataCollection, (void*)Tmp);
+    return NULL;
   }
   if( strcmp( argv[0], "settrigger" ) == 0 )
   {
     if(argc < 3)
-      return strdup("Wrong Arguments!");
+      return strdup("Wrong Arguments!/n");
 	      
     int i;
+    #ifndef TEST
     DeActivateTrigger( Tmp->vscope );
+    #endif
     if(strcmp( argv[1], "edge") == 0 )
     {
       for( i = 0; i < 8; i++ )
       {
         if( argv[2][i] == '0' )
+	{
+	  #ifndef TEST
 	  ActivateEdgeTrigger(Tmp->vscope, i, 0);
+	  #endif
+	}
         if( argv[2][i] == '1' )
+	{
+	  #ifndef TEST
 	  ActivateEdgeTrigger(Tmp->vscope, i, 1);
+	  #endif
+	}
       }
+      return NULL;
     }
-    if(strcmp( argv[1], "pattern") == 0 )
+    if(strcmp( argv[1], "value") == 0 )
     {
       char Pattern = 0;
       for( i = 0; i < 8; i++ )
@@ -122,16 +138,26 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
         if( argv[2][i] == '1' )
 	  Pattern &= 0x01;
       }
+#ifndef TEST
+      ActivatePatternTrigger();
+#endif
     }
      
 	  
   } if( strcmp( argv[0], "getdata" ) == 0 )
   {
     int i, j;
-    j = TQueue_GetLength(Tmp->data);
-    for( i = 0; i < j; i++)
-    {
-    }
+    char* Ret;
+    VSData* TmpData = NULL;
+    TmpData = (VSData*) TQueue_TryGetElement( Tmp->data );
+    if( TmpData == NULL )
+      return strdup("no data!\n");
+    
+    Ret =(char*) encode_b64((unsigned char*)TmpData->Data, TmpData->Len);
+    free( TmpData->Data );
+    free( TmpData);
+    return Ret;
+
     /*
     char test[20000];
     int k;
@@ -141,6 +167,7 @@ char* Communicate( void* DeviceHandle, int argc, char** argv )
     //return 
     */
   }
+  return NULL;
 }
 
 int Destroy( void* DeviceHandle )
@@ -150,7 +177,9 @@ int Destroy( void* DeviceHandle )
     return -1;
   }
   DeviceState* Tmp = (DeviceState*) DeviceHandle;
+#ifndef TEST
   closeVScope(Tmp->vscope);
+#endif
   free( Tmp );
   return 0;
 }
@@ -162,7 +191,19 @@ void *EndlessDataCollection(void* DeviceHandle)
   VSData* Data = (VSData*)malloc(sizeof(VSData)); 
   Data->Data = (char*)malloc(sizeof(char)*Tmp->DataCount);
   pthread_mutex_lock(&Tmp->mut);
+  #ifndef TEST
   Recording(Tmp->vscope, Tmp->Interval, Tmp->DataCount, Data->Data ); 
+  #endif
+  #ifdef TEST
+  int i = 0;
+  char j = 0;
+  for( i = 0; i < Tmp->DataCount; i++ )
+  {
+    Data->Data[i] = j;
+    j+=1;
+  }
+  Data->Len = Tmp->DataCount;
+  #endif
   pthread_mutex_unlock(&Tmp->mut);
 
   TQueue_AddElement(Tmp->data,Data);

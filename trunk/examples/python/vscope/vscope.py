@@ -6,25 +6,38 @@ sys.path.append( "../../../easyconnectlibs/python/")
 from easyconnectlib import *
 from dropdown import *
 import vcd
+import base64
+import time
+import struct
+import os
 
 class scope:
   def __init__( self, Ip, Port ):
-    if( FilePath == None ):
-      return
     self.Connection = easyConnect(ip=Ip, port=Port)
 
   def SetTrigger(self, TriggerType, Pattern ):
     # Command is vscope.settrigger $TRIGGERTYPE $PATTERN
-    # possible for $TRIGGERTYPE: edge, pattern
+    # possible for $TRIGGERTYPE: edge, value
+    self.Connection.Call("vscope.settrigger "+TriggerType+" "+Pattern)
     return 
   
-  def StartRecord( self, numval, interval, online ):
+  def StartRecord( self, numval, interval, mode ):
     # Command is vscope.start $DATACOUNT $INTERVALL $MODE
     # Mode is either online or interal
+    self.Connection.Call("vscope.start "+str(numval)+" "+interval+" "+mode)
     return
 
-  def GetValues( self ):
-    return
+  def GetValues( self, numval ):
+    i = 0
+    while i < 50:
+      l = self.Connection.Call("vscope.getdata")
+      i+=1
+      if(l == "no data!\n"):	
+	time.sleep(0.1)
+	continue
+      else:
+	break	
+    return base64.b64decode(l)
 
   def GetOneValue( self ):
     return
@@ -126,9 +139,9 @@ class App:
 
 	label = Label( self.triggergroup, text="Interval:")
 	label.grid(row=3,column=0, sticky=E)
-	self.intervall = StringVar()
-	self.intervall.set("100ms")	
-	Drop = DropDown(self.triggergroup, self.intervall, ["100ms","10ms","1ms","100us","50us","10us","5us"]) 
+	self.interval = StringVar()
+	self.interval.set("100ms")	
+	Drop = DropDown(self.triggergroup, self.interval, ["100ms","10ms","1ms","100us","50us","10us","5us"]) 
 	Drop.grid( row=3,column=1, sticky=W)
 
 	self.memory = IntVar()
@@ -136,7 +149,7 @@ class App:
 	Box=Checkbutton(self.triggergroup, variable=self.memory, text="Online", command=self.OnOffline).grid(row=3,column=2)
 
 
-	Button(self.triggergroup, width=20, text="Start!").grid(row=4,column=0, columnspan=3, pady=10)
+	Button(self.triggergroup, width=20, text="Start!", command=self.Start).grid(row=4,column=0, columnspan=3, pady=10)
 	
 
 	###########################
@@ -214,6 +227,39 @@ class App:
 
     def EdgeAsStop(self):
       print "Edge as Stop "+str(self.GetPattern(self.EdgeList))
+
+    def Start(self):
+      if( self.startcondtype.get() == "Value Pattern"):
+	type = "value"
+      else:
+	type = "edge" 
+
+      if self.memory.get():
+	mode = 'online'
+      else:
+	mode = 'internal'
+
+      tmp = scope(self.ip.get(), int(self.port.get()))
+      tmp.SetTrigger( type, self.startcond.get() ) 
+      tmp.StartRecord( int(self.numval.get()), self.interval.get(), "online")
+      Ret = tmp.GetValues( int(self.numval.get()))    
+      St = vcd.VCDStorage( self.target.get(), "VScope", self.interval.get() )
+      
+      ChList= []
+      for i in range(8):
+	ChList.append( "Channel"+str(i) )
+	St.AddReg( "Channel"+str(i), 1)
+      St.CreateHeader()
+      Values = {}
+      
+      for el in ChList:
+        Values[el]=0
+      St.SetStartValue( Values, 0 )
+
+      tmp =struct.unpack(len(Ret)*'b', Ret)
+      St.AddValStringAs8Bit(tmp)  
+      St.__del__()
+      os.system("gtkwave "+self.target.get()+"&")
 
 
 if __name__ == '__main__':

@@ -48,8 +48,10 @@ int Request_Execute( Request* Self )
   if( Ret != NULL )
   {
     Sender_AddMessage( Self->Send, Ret, Self->Data->Socket, RAW_MODE );
-    free( Ret );
   }
+  if( Ret == NULL )
+    Sender_AddMessage( Self->Send, "\n", Self->Data->Socket, RAW_MODE );
+  
   return 0;
 }
 

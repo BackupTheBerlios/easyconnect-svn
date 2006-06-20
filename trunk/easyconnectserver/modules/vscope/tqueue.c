@@ -115,6 +115,7 @@ void* TQueue_GetElement( TQueue* Self )
   return Element;
 }
 
+
 // Trying to get an element returs NULL if emty
 void* TQueue_TryGetElement( TQueue* Self )
 {
@@ -139,7 +140,7 @@ void* TQueue_TryGetElement( TQueue* Self )
   void* Element;
   TempNode = Self->First; 
   Self->First = TempNode->Next;
-  Self->First--;
+  Self->Length--;
   if(Self->Length == 0)
     Self->Last = NULL;
   

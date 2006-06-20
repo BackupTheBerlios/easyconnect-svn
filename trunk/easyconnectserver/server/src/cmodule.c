@@ -144,7 +144,7 @@ char* CModule_Callback( char* Callstring, int Socket, void* Parameter )
 {
   CModule* Self = (CModule*) Parameter;
   Callstring = strchr( Callstring, '.' ) +1;
-		  
+  char* Ret;  
   char* FunctionEnd = strchr( Callstring, ' ' );
   if( FunctionEnd == NULL )
     FunctionEnd = Callstring + strlen( Callstring);
@@ -153,7 +153,9 @@ char* CModule_Callback( char* Callstring, int Socket, void* Parameter )
   strncpy( Function, Callstring, length );
   Function[length] = '\0';  
   for(;*FunctionEnd != '\0' && *FunctionEnd == ' '; FunctionEnd++);
-  return CModule_ExecuteFunction( Self, Function, FunctionEnd); 
+  Ret = CModule_ExecuteFunction( Self, Function, FunctionEnd); 
+  free(Function);
+  return Ret;
 }
 
 int CModule_Destroy( CModule* Self )
