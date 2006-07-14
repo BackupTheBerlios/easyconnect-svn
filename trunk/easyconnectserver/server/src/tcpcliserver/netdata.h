@@ -42,9 +42,11 @@ enum ConnMode { CLI_MODE, RAW_MODE };
 
 /** \typedef typedef struct netdata NetData
  *  Use NetData instead of struct netdata.
- 
- * \struct netdata
- * \brief This object is used to transport
+ */
+
+/**\struct netdata
+ * \brief Use NetData instead of struct netdata.
+ * This object is used to transport
  * information as strings from and to the network. 
 */
 typedef struct netdata NetData;
