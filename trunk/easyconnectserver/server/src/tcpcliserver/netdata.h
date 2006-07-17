@@ -45,9 +45,9 @@ enum ConnMode { CLI_MODE, RAW_MODE };
  */
 
 /**\struct netdata
- * \brief Use NetData instead of struct netdata.
- * This object is used to transport
- * information as strings from and to the network. 
+ * \brief This object is used to transport information as strings from and to the network. 
+ * Use a NetData instance to transport messages from the network in the system
+ * or back to the client. It contains the respective socket and a zero terminated string containing the Message.
 */
 typedef struct netdata NetData;
 struct netdata

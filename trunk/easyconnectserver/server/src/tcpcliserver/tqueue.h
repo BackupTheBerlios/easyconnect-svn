@@ -24,6 +24,14 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+typedef struct node__ TQueue_Node;
+struct node__
+{
+  TQueue_Node* Next;
+  void* Element;	
+};
+
+
 /** \file tqueue.h
  * \brief Contains the Threadsafe Queue.
  * 
@@ -37,35 +45,13 @@
  * after retrieving it.
  */
 
-/** \typedef typedef struct node__ TQueue_Node
- * Use TQueue_Node instead of struct node__.
- */
 
-/** \struct node__
- * \brief Use Node instead of struct node__. 
- * This is a node in the queue. The instances of the nodes form the queue.
- * 
- *  This object should never be used by anyone except the queue. Its sole purpose 
- *  is to store a pointer to an arbitrary element.  
- */
-typedef struct node__ TQueue_Node;
-struct node__
-{
-  //@{
-  /// The pointer to the next instance in the queue. Next is NULL if the node is the last element.
-  TQueue_Node* Next;
-  /// This is the pointer to the stored element. 
-  void* Element;	
-  //@}
-};
-
-
-/** \typedef typedef struct tqueue__ TQueue
- * Use TQueue instead of struct tqueue__.
+/** \typedef typedef struct tqueue TQueue
+ * Use TQueue instead of struct tqueue.
  */
  
-/** \struct tqueue__
- * \brief Use TQueue instead of struct tqueue__.
+/** \struct tqueue
+ * \brief Use TQueue instead of struct tqueue.
  * This is the queue object. It is needed for the whole queue management. 
  * 
  * The queue functions need a pointer to a initialized tqueue object. This 
@@ -75,8 +61,8 @@ struct node__
  * removes the mutexes properly. Note: Remove the elements from the queue first,
  * or destroy will fail.
  */
-typedef struct tqueue__ TQueue;	
-struct tqueue__
+typedef struct tqueue TQueue;	
+struct tqueue
 {
   //{@
   /// Pointer to the first element in the queue. 

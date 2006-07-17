@@ -52,13 +52,9 @@
 typedef struct sender Sender;
 
 /** \struct sender
- *  \brief This is the sender struct. 
- *  Use Sender instead of struct sender. 
- *  A initialized instance contains the thread handle and the queue handle.
+ *  \brief Use it to send data to connected clients. 
  *
- *  Pass a instance to this struct to the functions. Always use the Sender_Init function to create
- *  a instance. 
- *
+ *  Always use the Sender_Init function to create a instance. 
  *  There are two possibilites to add data to the Queue. You can pass the 
  *  data, the socket and the type to the Sender_AddMessage() function, or you create a NetData 
  *  instance and pass it to Sender_AddNetData().
@@ -100,9 +96,11 @@ Sender* Sender_Init( TQueue* OutQueue );
  *  \brief Puts a message on the end of the queue. 
  *
  *  As the parameter list shows, this function enables you to add a message without the usage of a
- *  NetData object. The Message will be put on the bottom of the queue. If the
+ *  NetData object. This function creates the NetData instance for you.
+ *  The Message will be put on the bottom of the queue. If the
  *  queue was emty the thread will be woken up.
  *  \Attention You have to free the Msg string. It will be copied by Sender_AddMessage!
+ *  
  *  
  *  \param Self is a pointer to a initalized Sender instance.
  *
@@ -128,9 +126,27 @@ int Sender_AddMessage( Sender* Self, char* Msg, int Socket, int Type );
  *  \param Data is a pointer to a NetData instance containing the Data.
  */  
 int Sender_AddNetData( Sender* Self, NetData* Data );
-	
+
+/** \fn void Sender_Thread( void* data )
+ *  \brief This is the thread that will be started on initialization.
+ * 
+ *  The thread waits until an element is put in the queue. Then it takes it out, sends the data
+ *  to the given socket and destroys the NetData instance.
+ *
+ *  \param data takes a Sender instance casted to void.
+ */
 void Sender_Thread( void* data );
 
+/** \fn void Sender_Destroy( Sender* Self )
+ *  \brief Destroys a Sender instance.
+ *
+ *  Use this function to deinitialize a Sender instance. It will stop the thread,
+ *  and frees the allocated memory. 
+ *  \Attention Don't use the passed pointer afterwards.
+ *
+ *  \param Self is a pointer to a Sender instance. 
+ *
+ */
 void Sender_Destroy( Sender* Self );
 
 #endif

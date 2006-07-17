@@ -30,8 +30,30 @@
 #include "sender.h"
 #include "disposer.h"
 
+/** \file tcpcliserver
+ *  \brief Contains the main interface for the TcpCliServer.
+ *
+ *  The TcpCliServer is the main wrapper. The functions defined here are the public interface
+ *  that should be used. First initialize the TcpCliServer to get a instance. 
+ *  Then you can register your functions with the server and set the default error. 
+ *  After that Initialize one or both interfaces, Cli or Raw, with the ip and the port.
+ *  The server should now be up and running. 
+ *
+ */
 
+/** typedef struct tcpcliserver TcpCliServer
+ * Use TcpCliServer instead of struct tcpcliserver.
+ */
 
+/** \struct tcpcliserver
+ *  \brief This is the main handle for the TcpCliServer.
+ *
+ *  This struct contains the whole information needed for the TcpCliServer. On initialization it
+ *  initializes its queues and the disposer.
+ *  Then the functions can be registered, and the Network instances initialized.
+ *
+ *
+ */
 typedef struct tcpcliserver TcpCliServer;
 struct tcpcliserver
 {

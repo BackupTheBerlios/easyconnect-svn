@@ -57,14 +57,14 @@ Network* Network_Init( char* Ip, int Port, int Type, int BuffSize, TQueue* Queue
 
   if( bind( Self->SockFD, (struct sockaddr*) &Self->Address, sizeof( Self->Address )))
   {
-    // ERROR: at binding
-    // printf(" ERROR: %s\n", strerror(errno));
+     //ERROR: at binding
+     printf(" ERROR: at binding");
     return NULL;
   }
   if( listen( Self->SockFD, SOMAXCONN ) != 0 ) 
   {
-    // ERROR: at listen() 
-    // printf(" ERROR: %s\nExit listen Thread!\n", strerror(errno));
+    //ERROR: at listen() 
+     printf(" ERROR: Exit listen Thread!\n");
     return;
   }   
 

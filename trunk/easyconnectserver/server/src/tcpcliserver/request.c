@@ -30,7 +30,7 @@ Request* Request_Init( NetFunction* Func, NetData* Data, Sender* Send )
   Self->Send = Send;
   Self->Func = Func;
   Self->Data = Data;
-  Self->Next = NULL;
+  //Self->Next = NULL;
 
   return Self;
 }
@@ -129,10 +129,11 @@ RequestList* RequestList_Init( Sender* Send )
   Self->Last = NULL;
   Self->Length = 0;
 
+  /*
   Self->CliFirst = NULL;
   Self->CliLast = NULL;
   Self->CliLength = 0;
-
+  */
   return Self;
 }
 

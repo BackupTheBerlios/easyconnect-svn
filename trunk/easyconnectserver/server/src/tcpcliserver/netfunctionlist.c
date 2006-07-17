@@ -58,6 +58,7 @@ int NetFunctionList_RegisterFunction( NetFunctionList* Self,
 				   char*( *Callback )( char*, int, void* ),
 				   void* Parameter )
 {
+  //TODO: check if element with the same name is already stored
   NetFunction* Tmp = Self->Last;
   Self->Last = NetFunction_Init( Command, Callback, Parameter );
   Self->Last->Next = NULL;
@@ -99,5 +100,5 @@ NetFunction* NetFunctionList_FindFunction( NetFunctionList* Self, char* Command 
 
 char* NetFunctionList_LikeFunctions( NetFunctionList* Self, char* Command )
 {
-  // Here comes the wizardry with regular expressions 
+  return NULL;
 }

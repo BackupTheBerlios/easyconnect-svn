@@ -60,7 +60,7 @@ int Disposer_SetDefaultErrorMsg( Disposer* Self, char* ErrorMsg )
 
 int Disposer_HandleCli( Disposer* Self, NetData* Received )
 {
-  Disposer_Echo( Self, Received->Socket, Cl_AddChar( Self->CommandLine, Received->Data ));
+  //Disposer_Echo( Self, Received->Socket, Cl_AddChar( Self->CommandLine, Received->Data ));
   
   return 0;
 }

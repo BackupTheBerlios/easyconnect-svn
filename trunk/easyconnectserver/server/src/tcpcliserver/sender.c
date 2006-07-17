@@ -52,7 +52,7 @@ void Sender_Thread( void* data )
   {
     Outgoing =(NetData*) TQueue_GetElement( Self->Out );
     // pthread_testcancel();
-   
+    //TODO: stop the thread 
     //printf("To Send: %s To Socket: %i \n", Outgoing->Data, Outgoing->Socket ); 
     send( Outgoing->Socket, Outgoing->Data, strlen(Outgoing->Data), 0 );
     NetData_Destroy( Outgoing );	    
