@@ -1,6 +1,11 @@
 AC_INIT(configure.in)
 AC_SEARCH_LIBS([ioperm], [ioperm])
 
+
+AC_CHECK_LIB([pthread], [pthread_create],[], [echo Please install the pthread library.])
+AC_CHECK_LIB([python2.4], [Py_Initialize],[], [echo Please install the python2.4 developement library.]) 
+AC_CHECK_LIB([dl], [dlopen], [])
+
 PACKAGE=easyconnect
 VERSION=0.1.5
 

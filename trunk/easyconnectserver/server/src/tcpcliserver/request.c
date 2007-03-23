@@ -168,8 +168,9 @@ int RequestList_AddRequest( RequestList* Self, NetFunction* Func, NetData* Data 
   
 }
 
-int RequestList_Destroy()
+int RequestList_Destroy(RequestList* Self)
 {
+  return 0;
 }
 
 SocketRequest* RequestList_RawSocketExists( RequestList* Self, int Socket )

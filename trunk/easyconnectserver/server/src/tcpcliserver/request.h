@@ -31,6 +31,7 @@
 
 /** \file request.h
  *  \brief The requests are a list of queues, containing requested commands.
+ *
  *  The request mechanism enables the system to create a queue for every connected
  *  client, and execute their commands one bye one. This prevents the system from executing
  *  commands just for one user. 
@@ -65,6 +66,7 @@ struct request
 
 /** \fn Request* Request_Init( NetFunction* Func, NetData* Data, Sender* Send )
  *  \brief Creates a new Request instance.
+ *
  *  This function reserves the memory for a new Request instance and fills it with the passed data.
  *  \Note It does not copy the passed Data instance. Don't destroy it.
  * 
@@ -185,17 +187,24 @@ int SocketRequest_AddRequest( SocketRequest* Self, NetFunction* Func, NetData* D
 /** \fn void SocketRequest_Execute( void* data )
  *  \brief This is the thread that is started at creation of a new SocketRequest.
  *
+ *  This function is started as thread upon creation of a new SocketRequest.
+ *  It is the main part of the execution engine, because it takes the requests 
+ *  out of the queue and runs the functions. 
+ *
  *  \param data must be a pointer to the according SocketRequest instance.
  *
  */
 void SocketRequest_Execute( void* data ); // data must be a SocketRequest
 
-/** \fn
- *  \brief
+/** \fn int SocketRequest_Destroy( SocketRequest* Self )
+ *  \brief Deinitializes a SocketRequest.
+ *  
+ *  If a user disconnects from the server the respective SocketRequest has to be destroyed. This function
+ *  frees all the allocated memory and stops the running thread. 
  *
- *  \param
+ *  \param Self is a valid SocketRequest handle.
  *
- *  \return
+ *  \return -1 on error, 0 on success
  *
  */
 int SocketRequest_Destroy( SocketRequest* Self );
@@ -205,16 +214,23 @@ int SocketRequest_Destroy( SocketRequest* Self );
  */
 
 /** \struct requestlist
- *  \brief This list contains all queues. Every client has it's own.
+ *  \brief This list contains all queues from all clients. These are stored in the SocketRequest struct.
  * 
+ *  This struct is needed to let more than one user queue requests. It stores a SocketRequest for every 
+ *  user that is connected. They are put in a double linked list. Currently it is unsorted, to make the
+ *  access faster the list could be orderd by socket number. 
  *
  */
 struct requestlist
 {
+  //@{
+  /// Send is a valid Sender instance, needed to enable lower objects to return a message to the requesting client.
   Sender* Send;
-
+  /// First points to the first object in the double linked list.
   SocketRequest* First;
+  /// Last points to the Last object in the double linked list.
   SocketRequest* Last;
+  /// Length is the number of elements stored in the list.
   int Length;
 
   /*
@@ -224,56 +240,82 @@ struct requestlist
   */
 
   // User Management Interface could be implemented here 
+  //@}
 };
 typedef struct requestlist RequestList;
 
-/** \fn
- *  \brief
+/** \fn RequestList* RequestList_Init( Sender* Send )
+ *  \brief Creates a new RequestList.
  *
- *  \param
+ *  To create a initialized RequestList call this function. The returned handle is needed 
+ *  to call the other operations on this instance. The RequestList is empty.
  *
- *  \return
+ *  \param Send is a handle of a initialized Sender instance.
+ *
+ *  \return A handle to a newly created, empty RequestList. 
  *
  */
 RequestList* RequestList_Init( Sender* Send );
 
-/** \fn
- *  \brief
+/** \fn int RequestList_AddRequest( RequestList* Self, NetFunction* Func, NetData* Data )
+ *  \brief Call this function to add a request to the list.
  *
- *  \param
+ *  To add a new request call this function and pass the whole NetData object and a pointer to
+ *  the stored function. The NetData is needed, because it contains the socket. This identifies
+ *  the requester and is needed to queue all requests from this socket.
  *
- *  \return
+ *  \param Self is a handle of a valid RequestList instance.
+ *  \param Func is a pointer to the according stored function
+ *  \param Data is a pointer to the NetData object which contains the actual request.
+ *
+ *  \return -1 on error, 0 on success
  *
  */
 int RequestList_AddRequest( RequestList* Self, NetFunction* Func, NetData* Data );
 
-/** \fn
- *  \brief
+/** \fn int RequestList_RemoveRequest( RequestList* Self, int Socket )
+ *  \brief Removes request queue of one specific user, identified by a socket
  *
- *  \param
+ *  Use this function if a user disconnects or you know you don't get any more requests from him.
+ *  It terminates the queue and all remaining requests. The right socket is needed to identify the user.
+ *  
  *
- *  \return
+ *  \param Self is a handle of a valid RequestList instance.
+ *  \param Socket is the socketnumber of a connected client.
+ *
+ *  \return -1 on error, 0 on success.
+ *  
  *
  */
 int RequestList_RemoveRequest( RequestList* Self, int Socket );
 
-/** \fn
- *  \brief
+/** \fn int RequestList_Destroy( RequestList* Self )
+ *  \brief Use this function to Deinitialize a RequestList.
  *
- *  \param
+ *  This function destroys all stored queues and requests. The memory will be freed. 
+ *  Dont use the handle after you destroyed it.
  *
- *  \return
+ *  \param Self is a valid RequestList instance.
+ *
+ *  \return -1 on error, 0 on success.
  *
  */
-int RequestList_Destroy();
+int RequestList_Destroy( RequestList* Self );
 
-/** \fn
- *  \brief
+/** \fn SocketRequest* RequestList_RawSocketExists( RequestList* Self, int Socket )
+ *  \brief This internal function is used to determine if a socket has alread a queue.
  *
- *  \param
+ *  On inserting a element into the queue this function will be called to check if the
+ *  socket of the passed request has already a queue or if a new has to be created.
+ *  
+ * 
+ * 
+ *  \param Self is a valid RequestList instance.
+ *  \param Socket is a socket from a NetData object.
  *
- *  \return
+ *  \return A valid SocketRequest handle of the socket or NULL if no according SocketRequest is stored.
  *
  */
 SocketRequest* RequestList_RawSocketExists( RequestList* Self, int Socket );
+
 #endif
