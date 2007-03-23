@@ -9,5 +9,5 @@ AM_CFLAGS = -g
 # the library search path.
 easyconnect_LDFLAGS = $(all_libraries) 
 
-SUBDIRS = src 
+SUBDIRS = src modules
 easyconnect_LDADD = $(top_builddir)/src/tcpcliserver/libtcpcliserver.a $(top_builddir)/src/tcpcliserver/cl/libcl.a $(top_builddir)/src/iniparser/libiniparser.a

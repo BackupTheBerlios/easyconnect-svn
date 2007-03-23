@@ -2843,8 +2843,14 @@ _ACEOF
   LIBS="-lpthread $LIBS"
 
 else
-  echo Please install the pthread library.
+  echo "----------------- ERROR: -------------"
+echo  "Missing Library:"
+echo  "Please install the pthread library (libpthread-dev)"
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"
 fi
+
 
 
 { echo "$as_me:$LINENO: checking for Py_Initialize in -lpython2.4" >&5
@@ -2932,8 +2938,14 @@ _ACEOF
   LIBS="-lpython2.4 $LIBS"
 
 else
-  echo Please install the python2.4 developement library.
+  echo "----------------- ERROR: -------------"
+echo  "Missing Library:"
+echo  "Please install the python2.4 developement library (libpython2.4-dev)"
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"
 fi
+
 
 
 { echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
@@ -3020,6 +3032,109 @@ _ACEOF
 
   LIBS="-ldl $LIBS"
 
+else
+  echo "----------------- ERROR: -------------"
+echo  "Missing Library:"
+echo  "Please install the dynamic linking library (libdl)"
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"
+
+fi
+
+
+
+{ echo "$as_me:$LINENO: checking for usb_init in -lusb" >&5
+echo $ECHO_N "checking for usb_init in -lusb... $ECHO_C" >&6; }
+if test "${ac_cv_lib_usb_usb_init+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lusb  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char usb_init ();
+int
+main ()
+{
+return usb_init ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag" || test ! -s conftest.err'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_usb_usb_init=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_usb_usb_init=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_usb_usb_init" >&5
+echo "${ECHO_T}$ac_cv_lib_usb_usb_init" >&6; }
+if test $ac_cv_lib_usb_usb_init = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBUSB 1
+_ACEOF
+
+  LIBS="-lusb $LIBS"
+
+else
+  echo "----------------- ERROR: -------------"
+echo  "Missing Library:"
+echo  "Please install the libusb library (libusb-dev)"
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"
 fi
 
 
@@ -4531,7 +4646,7 @@ else
 fi
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/iniparser/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/iniparser/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile modules/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5117,6 +5232,7 @@ do
     "src/iniparser/Makefile") CONFIG_FILES="$CONFIG_FILES src/iniparser/Makefile" ;;
     "src/tcpcliserver/Makefile") CONFIG_FILES="$CONFIG_FILES src/tcpcliserver/Makefile" ;;
     "src/tcpcliserver/cl/Makefile") CONFIG_FILES="$CONFIG_FILES src/tcpcliserver/cl/Makefile" ;;
+    "modules/Makefile") CONFIG_FILES="$CONFIG_FILES modules/Makefile" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

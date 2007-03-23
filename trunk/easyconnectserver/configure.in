@@ -2,9 +2,38 @@ AC_INIT(configure.in)
 AC_SEARCH_LIBS([ioperm], [ioperm])
 
 
-AC_CHECK_LIB([pthread], [pthread_create],[], [echo Please install the pthread library.])
-AC_CHECK_LIB([python2.4], [Py_Initialize],[], [echo Please install the python2.4 developement library.]) 
-AC_CHECK_LIB([dl], [dlopen], [])
+AC_CHECK_LIB([pthread], [pthread_create],[], 
+[echo "----------------- ERROR: -------------" 
+echo  "Missing Library:"
+echo  "Please install the pthread library (libpthread-dev)" 
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"])
+
+AC_CHECK_LIB([python2.4], [Py_Initialize],[], 
+[echo "----------------- ERROR: -------------" 
+echo  "Missing Library:"
+echo  "Please install the python2.4 developement library (libpython2.4-dev)"
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"])
+
+AC_CHECK_LIB([dl], [dlopen], [],
+[echo "----------------- ERROR: -------------" 
+echo  "Missing Library:"
+echo  "Please install the dynamic linking library (libdl)" 
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"
+])
+
+AC_CHECK_LIB([usb], [usb_init], [], 
+[echo "----------------- ERROR: -------------" 
+echo  "Missing Library:"
+echo  "Please install the libusb library (libusb-dev)"
+echo  "and rerun ./configure"
+echo  "I will continue and create the Makefiles though."
+echo  "--------------------------------------"])
 
 PACKAGE=easyconnect
 VERSION=0.1.5
@@ -18,4 +47,4 @@ AC_LANG_C
 AC_PROG_CC
 AC_PROG_RANLIB
 
-AC_OUTPUT(Makefile src/Makefile  src/iniparser/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile)
+AC_OUTPUT(Makefile src/Makefile  src/iniparser/Makefile src/tcpcliserver/Makefile src/tcpcliserver/cl/Makefile modules/Makefile)

@@ -12,4 +12,4 @@ vscope/vscope.so: vscope/vscope.c vscope/base64.c
 	gcc -g -o vscope/vscope.so -shared vscope/vscope.o vscope/base64.o vscope/vscopedevice.o vscope/tqueue.o -lusb
 
 clean:
-	rm vscope/*.o vscope/*.so
+	rm vscope/*.o vscope/*.so cpu-watcher/*.so cpu-watcher/*.o
