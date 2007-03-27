@@ -115,6 +115,7 @@ void* TQueue_GetElement( TQueue* Self )
   return Element;
 }
 
+
 // Trying to get an element returs NULL if emty
 void* TQueue_TryGetElement( TQueue* Self )
 {
