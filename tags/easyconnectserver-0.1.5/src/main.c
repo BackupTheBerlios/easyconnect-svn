@@ -52,9 +52,9 @@ int main( int argv, char** argc )
   // Add General functions
   ModuleList_AddFromPath( List, "config/ecfunc.conf" );
 
-  ModuleList_AddFromPath( List, "config/devices/cpu-watcher.conf" );
+  ModuleList_AddFromPath( List, "modules/cpu-watcher/cpu-watcher.conf" );
   //ModuleList_AddFromPath( List, "../../config/devices/storage.conf" );
-  ModuleList_AddFromPath( List, "config/devices/vscope.conf" );
+  ModuleList_AddFromPath( List, "modules/vscope/vscope.conf" );
   
   TcpCliServer* New = TcpCliServer_Init();
   TcpCliServer_SetDefaultError( New, Tmp->Error ); 
